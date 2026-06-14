@@ -421,15 +421,15 @@ function SignalCard({ signalKey, sig, fullWidth, priceBand }: {
           {conf.label}
         </span>
       </div>
-      <p className={cn('text-sm text-slate-600 leading-relaxed flex-1', !open && 'line-clamp-2')}>
+      <p className={cn('text-sm text-slate-600 leading-relaxed flex-1', !open && 'line-clamp-3')}>
         {sig.evidence_summary}
       </p>
-      <InlineViz signalKey={signalKey} rawData={sig.raw_data} priceBand={priceBand} />
       <div className="mt-3 h-[3px] bg-slate-100 rounded-full">
         <div className={cn('h-full rounded-full', conf.bar)} style={{ width: conf.barWidth }} />
       </div>
       {open && (
-        <div className="mt-4 pt-4 border-t border-slate-100 space-y-2.5">
+        <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
+          <InlineViz signalKey={signalKey} rawData={sig.raw_data} priceBand={priceBand} />
           <p className="text-sm leading-relaxed">
             <span className="font-semibold text-slate-800">Proves — </span>
             <span className="text-slate-500">{sig.what_it_proves}</span>
@@ -443,7 +443,7 @@ function SignalCard({ signalKey, sig, fullWidth, priceBand }: {
       )}
       <button onClick={() => setOpen(v => !v)}
         className="mt-3 text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors self-start">
-        {open ? '▲ Collapse' : '▼ Proves · Watch · Sources'}
+        {open ? '▲ Collapse' : '▼ Chart · Proves · Watch · Sources'}
       </button>
     </div>
   )
@@ -539,11 +539,46 @@ function LeftSidebar({ onNew }: { onNew: () => void }) {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function extractUnits(text: string): { range: string; detail: string } {
+function extractUnits(text: string): { range: string } {
   const m = text.match(/^([\d,–—-]+\s*units?\s*(?:per\s+store)?(?:\s*\([^)]+\))?)/i)
-  if (m) return { range: m[1].trim(), detail: text.slice(m[0].length).replace(/^[\s.–—]+/, '') }
-  const parts = text.split('. ')
-  return { range: parts[0], detail: parts.slice(1).join('. ') }
+  return { range: m ? m[1].trim() : text.split('.')[0] }
+}
+
+function parseUnitNumbers(range: string): { min: number; max: number } | null {
+  const m = range.match(/(\d+)[–—\-](\d+)/)
+  if (m) return { min: parseInt(m[1]), max: parseInt(m[2]) }
+  const n = parseInt(range)
+  return isNaN(n) ? null : { min: n, max: n }
+}
+
+interface SellThroughTriggers { reorder: string; hold: string; markdown: string; markdownPrice: string; exit: string }
+
+function parseSellThroughTriggers(actions: string[]): SellThroughTriggers | null {
+  const a = actions.find(x => x.toLowerCase().includes('sell-through') && x.includes('%'))
+  if (!a) return null
+  const reorder  = a.match(/reorder if (?:above|>|≥)\s*(\d+)%/i)?.[1]
+  const mdown    = a.match(/markdown (?:to )?(₹[\d,]+) if (?:below|<)\s*(\d+)%/i)
+  const exit     = a.match(/exit if (?:below|<)\s*(\d+)%/i)?.[1]
+  if (!reorder && !exit) return null
+  const ro = reorder ?? '55', ex = exit ?? '25', md = mdown?.[2] ?? '35', price = mdown?.[1] ?? '₹599'
+  return { reorder: `≥${ro}%`, hold: `${md}–${ro}%`, markdown: `<${md}%`, markdownPrice: price, exit: `<${ex}%` }
+}
+
+function parseStoreCount(text: string): number | null {
+  const cities = ['Mumbai','Delhi','Bengaluru','Bangalore','Chennai','Kochi','Hyderabad','Pune','Kolkata','Ahmedabad']
+  const found = cities.filter(c => text.includes(c))
+  if (found.length >= 2) return found.length
+  const m = text.match(/(\d+)\s+stores?/i)
+  return m ? parseInt(m[1]) : null
+}
+
+function filterActions(actions: string[]): string[] {
+  return actions.filter(a => {
+    const l = a.toLowerCase()
+    if (l.includes('initial depth') || l.startsWith('limit initial')) return false
+    if (l.includes('sell-through checkpoint') || l.includes('reorder if above')) return false
+    return true
+  })
 }
 
 function splitDisagreement(text: string): { consensus: string; counter: string } {
@@ -577,7 +612,6 @@ export default function ReportPage() {
   const [notFound, setNotFound]   = useState(false)
   const [tab, setTab]             = useState('analysis')
   const [skeptOpen, setSkeptOpen] = useState(false)
-  const [disagOpen, setDisagOpen] = useState(false)
 
   useEffect(() => {
     const stored = sessionStorage.getItem(`report-${id}`)
@@ -610,7 +644,11 @@ export default function ReportPage() {
   const isDemo = report.id.startsWith('demo-')
   const keywords = report.input.keywords ?? report.input.subCategory
   const signalEntries = Object.entries(report.signals) as [string, TrendReport['signals'][keyof TrendReport['signals']]][]
-  const { range: unitRange, detail: unitDetail } = report.suggested_units ? extractUnits(report.suggested_units) : { range: '', detail: '' }
+  const { range: unitRange } = report.suggested_units ? extractUnits(report.suggested_units) : { range: '' }
+  const unitNumbers  = unitRange ? parseUnitNumbers(unitRange) : null
+  const storeCount   = report.suggested_units ? parseStoreCount(report.suggested_units) : null
+  const triggers     = parseSellThroughTriggers(report.recommended_actions)
+  const filteredActions = filterActions(report.recommended_actions)
   const { consensus, counter } = splitDisagreement(report.disagreement_view)
   const palette = getTrendPalette(keywords)
   const reportId = report.id.replace(/^demo-/, '').slice(0, 10).toUpperCase()
@@ -692,10 +730,10 @@ export default function ReportPage() {
                 {/* ── Tab: Analysis ── */}
                 {tab === 'analysis' && (
                   <div className="space-y-4">
-                    {/* Radar + legend */}
+                    {/* Radar + signal legend */}
                     <div className="bg-white rounded-2xl border border-slate-200 p-5">
                       <div className="text-sm font-bold text-slate-700 mb-1">Signal Confidence Overview</div>
-                      <div className="text-xs text-slate-400 mb-4">Shape shows alignment across all five signals — full pentagon = consensus, lopsided = disagreement</div>
+                      <div className="text-xs text-slate-400 mb-4">Full pentagon = all signals agree. Lopsided = disagreement — detail below.</div>
                       <div className="flex items-center gap-6">
                         <RadarChart signals={report.signals} />
                         <div className="flex-1 space-y-3">
@@ -721,39 +759,33 @@ export default function ReportPage() {
                       </div>
                     </div>
 
+                    {/* Disagreement — shown before signal cards so buyer sees the tension first */}
+                    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden" style={{ borderLeft: '4px solid #f97316' }}>
+                      <div className="p-5">
+                        <div className="flex items-center gap-2 mb-4">
+                          <AlertIcon />
+                          <span className="text-sm font-bold text-orange-600">Signal Disagreement</span>
+                          <span className="text-xs text-slate-400 hidden sm:block">— Where to probe further</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-5">
+                          <div>
+                            <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">The Consensus</div>
+                            <p className="text-sm text-slate-600 leading-relaxed line-clamp-4">{consensus}</p>
+                          </div>
+                          <div>
+                            <div className="text-xs font-bold uppercase tracking-widest text-orange-500 mb-2">The Counter-Signal</div>
+                            <p className="text-sm text-slate-600 leading-relaxed line-clamp-4">{counter}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Signal cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {signalEntries.map(([key, sig], idx) => (
                         <SignalCard key={key} signalKey={key} sig={sig} priceBand={report.input.priceBand}
                           fullWidth={signalEntries.length % 2 !== 0 && idx === signalEntries.length - 1} />
                       ))}
-                    </div>
-
-                    {/* Disagreement */}
-                    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden" style={{ borderLeft: '4px solid #f97316' }}>
-                      <div className="p-5">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-2">
-                            <AlertIcon />
-                            <span className="text-sm font-bold text-orange-600">Signal Disagreement</span>
-                            <span className="text-xs text-slate-400 hidden sm:block">— Where to probe further</span>
-                          </div>
-                          <button onClick={() => setDisagOpen(v => !v)}
-                            className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors">
-                            {disagOpen ? '▲ Less' : '▼ Full analysis'}
-                          </button>
-                        </div>
-                        <div className="grid grid-cols-2 gap-5">
-                          <div>
-                            <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">The Consensus</div>
-                            <p className={cn('text-sm text-slate-600 leading-relaxed', !disagOpen && 'line-clamp-3')}>{consensus}</p>
-                          </div>
-                          <div>
-                            <div className="text-xs font-bold uppercase tracking-widest text-orange-500 mb-2">The Counter-Signal</div>
-                            <p className={cn('text-sm text-slate-600 leading-relaxed', !disagOpen && 'line-clamp-3')}>{counter}</p>
-                          </div>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 )}
@@ -844,19 +876,51 @@ export default function ReportPage() {
               <div className="space-y-4">
                 <div className="sticky top-[57px] space-y-4">
 
-                  {/* Recommendation */}
+                  {/* Bet Sizing — decision cockpit */}
                   <div className="bg-white rounded-2xl border border-slate-200 p-5">
                     <button className={cn(
-                      'w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold shadow-sm mb-4 transition-all',
+                      'w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold shadow-sm mb-5 transition-all',
                       rec.bg, rec.text
                     )}>
                       {rec.icon}{rec.label}
                     </button>
+
                     {unitRange && (
-                      <div>
-                        <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Suggested Bet Size</div>
-                        <div className={cn('text-xl font-bold leading-tight', rec.unitColor)}>{unitRange}</div>
-                        {unitDetail && <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">{unitDetail}</p>}
+                      <>
+                        <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Suggested Bet Size</div>
+                        <div className="flex items-end gap-2 mb-1">
+                          <span className={cn('text-3xl font-bold leading-none tracking-tight', rec.unitColor)}>
+                            {unitNumbers ? `${unitNumbers.min}–${unitNumbers.max}` : unitRange}
+                          </span>
+                          <span className="text-sm text-slate-400 pb-0.5">units / store</span>
+                        </div>
+                        {storeCount && unitNumbers && (
+                          <p className="text-xs text-slate-400 mb-1">
+                            × {storeCount} stores →{' '}
+                            <span className="font-semibold text-slate-700">
+                              ~{unitNumbers.min * storeCount}–{unitNumbers.max * storeCount} units total
+                            </span>
+                          </p>
+                        )}
+                      </>
+                    )}
+
+                    {triggers && (
+                      <div className="mt-4 pt-4 border-t border-slate-100">
+                        <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2.5">Week-4 Sell-Through Triggers</div>
+                        <div className="space-y-1.5">
+                          {([
+                            { range: triggers.reorder, label: 'Reorder',                      color: 'bg-emerald-50 border-emerald-200 text-emerald-700' },
+                            { range: triggers.hold,    label: 'Hold — monitor',               color: 'bg-amber-50 border-amber-200 text-amber-700' },
+                            { range: triggers.markdown,label: `Markdown ${triggers.markdownPrice}`, color: 'bg-orange-50 border-orange-200 text-orange-700' },
+                            { range: triggers.exit,    label: 'Exit — clear stock',            color: 'bg-red-50 border-red-200 text-red-700' },
+                          ] as { range: string; label: string; color: string }[]).map(({ range, label, color }) => (
+                            <div key={range} className={cn('flex items-center justify-between px-3 py-2 rounded-xl border text-xs font-semibold', color)}>
+                              <span>{range}</span>
+                              <span className="font-medium">{label}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -864,19 +928,14 @@ export default function ReportPage() {
                   {/* Evidence Gaps */}
                   {report.evidence_gaps.length > 0 && (
                     <div className="bg-white rounded-2xl border border-slate-200 p-4">
-                      <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Evidence Gaps</div>
-                      <ul className="space-y-3">
-                        {report.evidence_gaps.map((gap, i) => {
-                          const dash = gap.indexOf(' — ')
-                          const title = dash > -1 ? gap.slice(0, dash) : gap
-                          const desc  = dash > -1 ? gap.slice(dash + 3) : ''
+                      <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Validate Before Committing</div>
+                      <ul className="space-y-2">
+                        {report.evidence_gaps.slice(0, 3).map((gap, i) => {
+                          const title = gap.indexOf(' — ') > -1 ? gap.slice(0, gap.indexOf(' — ')) : gap
                           return (
-                            <li key={i} className="flex gap-2.5 items-start">
-                              <span className="shrink-0 mt-0.5"><BoxIcon /></span>
-                              <div>
-                                <div className="text-sm font-semibold text-slate-700 leading-snug">{title}</div>
-                                {desc && <div className="text-xs text-slate-400 mt-0.5 leading-relaxed">{desc}</div>}
-                              </div>
+                            <li key={i} className="flex gap-2.5 items-center">
+                              <span className="shrink-0"><BoxIcon /></span>
+                              <span className="text-sm text-slate-700 leading-snug">{title}</span>
                             </li>
                           )
                         })}
@@ -885,14 +944,14 @@ export default function ReportPage() {
                   )}
 
                   {/* Recommended Actions */}
-                  {report.recommended_actions.length > 0 && (
+                  {filteredActions.length > 0 && (
                     <div className="rounded-2xl p-4" style={{ background: '#1e3a8a' }}>
-                      <div className="text-xs font-bold uppercase tracking-widest text-blue-300 mb-3">Recommended Actions</div>
+                      <div className="text-xs font-bold uppercase tracking-widest text-blue-300 mb-3">Next Actions</div>
                       <ul className="space-y-1.5">
-                        {report.recommended_actions.map((action, i) => (
-                          <li key={i} className="flex items-center justify-between gap-2 px-3 py-2.5 bg-white/10 hover:bg-white/[0.16] rounded-xl transition-colors cursor-pointer">
+                        {filteredActions.slice(0, 3).map((action, i) => (
+                          <li key={i} className="flex items-start gap-2 px-3 py-2.5 bg-white/10 rounded-xl">
+                            <span className="text-blue-300 font-bold text-xs shrink-0 mt-0.5">{i + 1}.</span>
                             <span className="text-xs text-white leading-relaxed">{action}</span>
-                            <span className="shrink-0 text-white/50"><ArrowIcon /></span>
                           </li>
                         ))}
                       </ul>
