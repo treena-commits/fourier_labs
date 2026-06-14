@@ -47,6 +47,8 @@ The output is not a confidence score. It is an actionable inventory decision: **
 | Competitor Buy Map | Google Search `site:Ajio.com + `site:maxfashion.in` via SerpAPI | Retailer conviction; is the market backing this? | Competitors may be copying each other. Different customer segments. Sale items signal possible overstock. |
 | Historical Analog | Curated dataset of 10 real India co-ord trends (`/data/historical-analogs.json`) | Commercial precedent by fabric, silhouette, price band | Small dataset, hand-curated (disclosed). Past outcomes don't guarantee future demand. |
 
+ **Global → India translation layer** — explicit prompt module that asks: does this trend fit Indian climate, modesty norms, and price band before passing to the recommendation layer
+
 **Why no direct scraping of Myntra/Amazon?** Anti-bot walls will break a demo. SerpAPI's Google Shopping results provide the same product signal (titles, prices, reviews) without brittle scraping. 
 ---
 
@@ -119,6 +121,5 @@ A successful TrendBet adoption would be measured by:
 1. **Google Trends time-series** — route through a Python sidecar (pytrends) to get the full 12-month interest curve and regional breakdown
 2. **Buyer feedback loop** — after sell-through, buyers rate the recommendation; feed back into historical analog dataset
 3. **Visual trend clustering** — group competitor product images by silhouette and color family using Claude's vision API
-4. **Global → India translation layer** — explicit prompt module that asks: does this trend fit Indian climate, modesty norms, and price band before passing to the recommendation layer
-5. **Active Bets tracker** — once the buyer places an order, track sell-through signals weekly against the original recommendation
+4. **Active Bets tracker** — once the buyer places an order, track sell-through signals weekly against the original recommendation
 6. **Instagram creator quality enrichment** — the current creator signal collects Instagram mentions via a generic Google Search (`site:instagram.com OR site:reels`). It has no visibility into which creators are being surfaced: a 500K niche fashion creator and a 10M general lifestyle creator are treated identically. The fix requires either the Instagram Graph API (OAuth per-creator) or a third-party influencer platform (e.g. Phyllo, Modash) to enrich each mention with follower count, niche tags, engagement rate, and audience demographics. Until then, the signal cannot distinguish aspirational/premium creator buzz from creators whose audiences actually buy at ₹699–999 price points — a meaningful gap for value-fashion decisions.
