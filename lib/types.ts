@@ -5,6 +5,7 @@ export interface TrendInput {
   buyingHorizon: 'immediate' | 'next-cycle' | 'future-bet'
   priceBand: '299-599' | '600-999' | '1000-1499'
   fabric: string
+  buyerNote?: string
 }
 
 export type Confidence = 'High' | 'Medium' | 'Low' | 'Insufficient Data'

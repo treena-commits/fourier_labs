@@ -62,6 +62,9 @@ const PIPELINE_STEPS = [
 
 export default function IntakePage() {
   const router = useRouter()
+  const DEFAULT_BUYER_NOTE =
+    `Last season's earthy-tone co-ords (₹799) sold through 78% in 6 weeks at Pune stores but stalled at 43% in Tier 2. Cotton-linen responds well Apr–Jun; rayon underperforms post-July humidity. Our vendor base turns cargo detailing in 45 days. Zudio competition has compressed our markdown window — anything below 60% sell-through by week 4 goes to flat discount. Shoppers in our catchment skew 22–32, college to early-career, occasion-wear driven.`
+
   const [form, setForm] = useState<TrendInput>({
     category: "Women's Apparel",
     subCategory: 'Co-ord Sets',
@@ -69,6 +72,7 @@ export default function IntakePage() {
     buyingHorizon: 'next-cycle',
     priceBand: '600-999',
     fabric: 'Cotton / Cotton-linen',
+    buyerNote: DEFAULT_BUYER_NOTE,
   })
   const [loading, setLoading] = useState(false)
   const [currentStep, setCurrentStep] = useState(-1)
@@ -271,6 +275,24 @@ export default function IntakePage() {
               </div>
             </div>
 
+            {/* Buyer Note */}
+            <div>
+              <label className="block text-sm font-semibold mb-1">
+                Buyer Note <span className="text-xs font-normal" style={{ color: 'var(--muted)' }}>(optional)</span>
+              </label>
+              <p className="text-xs mb-2" style={{ color: 'var(--muted)' }}>
+                Add past sell-through rates, store-level observations, vendor constraints, or any context that should act as a judgment layer against the market signals.
+              </p>
+              <textarea
+                rows={5}
+                className="w-full rounded-lg border px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-400"
+                style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
+                placeholder="e.g. Last season's cargo co-ords sold through 78% in 6 weeks at metro stores but underperformed in Tier 2…"
+                value={form.buyerNote ?? ''}
+                onChange={e => setForm(f => ({ ...f, buyerNote: e.target.value }))}
+              />
+            </div>
+
             {error && (
               <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {error}
@@ -294,17 +316,6 @@ export default function IntakePage() {
 
         {/* Sidebar */}
         <div className="space-y-5">
-          <div className="rounded-lg border p-4" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
-            <div className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--accent)' }}>
-              Buyer&apos;s Note
-            </div>
-            <p className="text-xs leading-relaxed" style={{ color: 'var(--muted)' }}>
-              Co-ord sets are seeing a 40%+ YoY increase in search volume. However, the ₹600–₹900 segment
-              is becoming highly saturated. Ensure the print story or fabric texture is distinct enough to
-              avoid markdown traps.
-            </p>
-          </div>
-
           <div className="rounded-lg border p-4" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
             <div className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: 'var(--muted)' }}>
               Analysis Pipeline

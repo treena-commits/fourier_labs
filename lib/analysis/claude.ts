@@ -53,6 +53,10 @@ Evidence: ${signals.historical.evidence_summary}
 What it proves: ${signals.historical.what_it_proves}
 What could mislead: ${signals.historical.what_could_mislead}
 
+## Buyer Judgment (ground-truth context from the buyer)
+${input.buyerNote?.trim() ? input.buyerNote.trim() : 'Not provided.'}
+This is first-hand knowledge from the buyer — past sell-through rates, store-level performance, vendor constraints, markdown history. It is not a market signal but a judgment filter. Where it conflicts with or validates external signals, call it out explicitly in disagreement_view and caveats.
+
 ---
 
 Analyze these signals and produce a structured buyer recommendation.
