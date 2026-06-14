@@ -60,31 +60,47 @@ const PIPELINE_STEPS = [
   { id: 'analysis', label: 'Buyer Recommendation', desc: 'AI reasoning layer' },
 ]
 
-const DEFAULT_BUYER_NOTE = `Kaftan co-ords trialled last festive season (₹899, rayon, block print) — sold through 61% in 8 weeks across metro stores but moved poorly in Tier 2 and Tier 3 (38%). Category skews strongly occasion-wear: Eid, navratri, and beach/resort gifting drove most units. Reorder velocity was low — customers treat it as a one-off buy, not a wardrobe repeat. Rayon with wide sleeves had fitting complaints post-wash; cotton-modal blend performed better on returns. Our vendor needs 50-day lead on embroidery or block-print work. Max Fashion has started stocking kaftans at ₹699 with solid colours — differentiation needs to come from print story or silhouette detail. Suggest limiting depth to 80–120 units per store for trial; avoid wide size curve below S/M.`
+const DEMO_BUYER_NOTE = `Kaftan co-ords trialled last festive season (₹899, rayon, block print) — sold through 61% in 8 weeks across metro stores but moved poorly in Tier 2 and Tier 3 (38%). Category skews strongly occasion-wear: Eid, navratri, and beach/resort gifting drove most units. Reorder velocity was low — customers treat it as a one-off buy, not a wardrobe repeat. Rayon with wide sleeves had fitting complaints post-wash; cotton-modal blend performed better on returns. Our vendor needs 50-day lead on embroidery or block-print work. Max Fashion has started stocking kaftans at ₹699 with solid colours — differentiation needs to come from print story or silhouette detail. Suggest limiting depth to 80–120 units per store for trial; avoid wide size curve below S/M.`
+
+const DEMO_FORM: TrendInput = {
+  category: "Women's Apparel",
+  subCategory: 'Co-ord Sets',
+  keywords: 'Kaftan Coord Set',
+  buyingHorizon: 'next-cycle',
+  priceBand: '600-999',
+  fabric: 'Cotton / Cotton-linen',
+  buyerNote: DEMO_BUYER_NOTE,
+}
+
+const EMPTY_FORM: TrendInput = {
+  category: "Women's Apparel",
+  subCategory: 'Co-ord Sets',
+  keywords: '',
+  buyingHorizon: 'next-cycle',
+  priceBand: '600-999',
+  fabric: 'Cotton / Cotton-linen',
+  buyerNote: '',
+}
 
 export default function IntakePage() {
   const router = useRouter()
-  const [form, setForm] = useState<TrendInput>({
-    category: "Women's Apparel",
-    subCategory: 'Co-ord Sets',
-    keywords: 'Kaftan Coord Set',
-    buyingHorizon: 'next-cycle',
-    priceBand: '600-999',
-    fabric: 'Cotton / Cotton-linen',
-    buyerNote: DEFAULT_BUYER_NOTE,
-  })
+  const [mode, setMode] = useState<'live' | 'demo'>('demo')
+  const [form, setForm] = useState<TrendInput>(DEMO_FORM)
   const [loading, setLoading] = useState(false)
   const [currentStep, setCurrentStep] = useState(-1)
   const [error, setError] = useState('')
+
+  function switchMode(next: 'live' | 'demo') {
+    setMode(next)
+    setForm(next === 'demo' ? DEMO_FORM : EMPTY_FORM)
+    setError('')
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    // Track completion of animation and API independently.
-    // Navigation fires only when BOTH are done, so demo mode always
-    // plays the full pipeline animation before the report appears.
     let pendingReport: ReturnType<typeof JSON.parse> | null = null
     let animationDone = false
 
@@ -105,22 +121,28 @@ export default function IntakePage() {
     }, 1800)
 
     try {
-      const res = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      })
-
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error || 'Analysis failed')
-      }
-
-      const report = await res.json()
-      if (animationDone) {
-        finish(report)
+      if (mode === 'demo') {
+        // Demo: load cached report directly — no API call needed
+        const res = await fetch('/sample-output.json')
+        if (!res.ok) throw new Error('Could not load demo data')
+        const report = await res.json()
+        // Carry the buyer note the user may have edited
+        report.input = { ...report.input, buyerNote: form.buyerNote }
+        if (animationDone) finish(report)
+        else pendingReport = report
       } else {
-        pendingReport = report
+        const res = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form),
+        })
+        if (!res.ok) {
+          const err = await res.json()
+          throw new Error(err.error || 'Analysis failed')
+        }
+        const report = await res.json()
+        if (animationDone) finish(report)
+        else pendingReport = report
       }
     } catch (err) {
       clearInterval(interval)
@@ -144,153 +166,205 @@ export default function IntakePage() {
       <div className="max-w-5xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <div className="mb-6">
-            <div className="text-xs font-medium mb-1 uppercase tracking-wide" style={{ color: 'var(--muted)' }}>
-              New Trend Evaluation
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--muted)' }}>
+                New Trend Evaluation
+              </div>
+              {/* Live / Demo toggle */}
+              <div className="flex items-center gap-1 p-1 rounded-lg border" style={{ background: 'var(--background)', borderColor: 'var(--border)' }}>
+                <button
+                  type="button"
+                  onClick={() => switchMode('live')}
+                  className={cn(
+                    'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all',
+                    mode === 'live'
+                      ? 'bg-green-500 text-white shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
+                  )}
+                >
+                  <span className={cn('w-1.5 h-1.5 rounded-full', mode === 'live' ? 'bg-white animate-pulse' : 'bg-gray-400')} />
+                  Live Data
+                </button>
+                <button
+                  type="button"
+                  onClick={() => switchMode('demo')}
+                  className={cn(
+                    'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all',
+                    mode === 'demo'
+                      ? 'text-amber-800 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
+                  )}
+                  style={mode === 'demo' ? { background: '#fef08a' } : {}}
+                >
+                  <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor" className="flex-shrink-0">
+                    <path d="M8 1C4.5 1 2 2.6 2 4.5v7C2 13.4 4.5 15 8 15s6-1.6 6-3.5v-7C14 2.6 11.5 1 8 1zm4.5 3.5c0 .8-2 1.5-4.5 1.5S3.5 5.3 3.5 4.5 5.5 3 8 3s4.5.7 4.5 1.5zM8 13.5c-2.5 0-4.5-.7-4.5-1.5v-1.2c1 .5 2.7.7 4.5.7s3.5-.2 4.5-.7v1.2c0 .8-2 1.5-4.5 1.5zm4.5-4c0 .8-2 1.5-4.5 1.5S3.5 10.3 3.5 9.5V8.3c1 .5 2.7.7 4.5.7s3.5-.2 4.5-.7v1.2z"/>
+                  </svg>
+                  Pre-loaded Demo
+                </button>
+              </div>
             </div>
             <h1 className="text-2xl font-bold mb-2">New Trend Intake</h1>
-            <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
-              Describe the trend you&apos;re evaluating. TrendBet will cross-reference market signals, search momentum,
-              and competitor inventory to give you an inventory recommendation.
-            </p>
+            <div className="flex items-start justify-between gap-4">
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
+                {mode === 'demo'
+                  ? 'Pre-loaded with a Kaftan Co-ord Set evaluation. Fields are locked — switch to Live Data to enter your own trend.'
+                  : 'Describe the trend you’re evaluating. TrendBet will cross-reference market signals, search momentum, and competitor inventory to give you an inventory recommendation.'}
+              </p>
+              {mode === 'live' && (
+                <button
+                  type="button"
+                  onClick={() => setForm(EMPTY_FORM)}
+                  className="text-xs flex-shrink-0 underline underline-offset-2 hover:opacity-70 transition-opacity"
+                  style={{ color: 'var(--muted)' }}
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-7">
 
-            {/* Category + Sub-category row */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: 'var(--muted)' }}>
-                  Category
-                </label>
-                <select
-                  className="w-full rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
-                  style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
-                  value={form.category}
-                  onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-                >
-                  {CATEGORIES.map(c => (
-                    <option key={c.value} value={c.value} disabled={c.disabled}>
-                      {c.value}{c.disabled ? ' (coming soon)' : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: 'var(--muted)' }}>
-                  Sub-category
-                </label>
-                <select
-                  className="w-full rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
-                  style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
-                  value={form.subCategory}
-                  onChange={e => setForm(f => ({ ...f, subCategory: e.target.value }))}
-                >
-                  {SUBCATEGORIES.map(c => (
-                    <option key={c.value} value={c.value} disabled={c.disabled}>
-                      {c.value}{c.disabled ? ' (coming soon)' : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+            {/* Fields locked in demo mode */}
+            <fieldset disabled={mode === 'demo'} className={cn('space-y-7', mode === 'demo' && 'opacity-60 pointer-events-none select-none')}>
 
-            {/* Trend Keywords */}
-            <div>
-              <label className="block text-sm font-semibold mb-1">
-                Trend Keywords <span className="text-xs font-normal" style={{ color: 'var(--muted)' }}>(optional)</span>
-              </label>
-              <p className="text-xs mb-2" style={{ color: 'var(--muted)' }}>
-                Add adjectives or modifiers to refine the search — e.g. vibe, print, silhouette detail. Sub-category is always the base.
-              </p>
-              <textarea
-                rows={3}
-                className="w-full rounded-lg border px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-400"
-                style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
-                placeholder='e.g. "earthy utility cargo" or "floral print summer casual"'
-                value={form.keywords ?? ''}
-                onChange={e => setForm(f => ({ ...f, keywords: e.target.value }))}
-              />
-            </div>
-
-            {/* Buying Horizon */}
-            <div>
-              <label className="block text-sm font-semibold mb-1">Buying Horizon</label>
-              <p className="text-xs mb-3" style={{ color: 'var(--muted)' }}>
-                When do you need to commit inventory? This shapes what signal confidence level is required.
-              </p>
-              <div className="grid grid-cols-3 gap-3">
-                {BUYING_HORIZONS.map(h => (
-                  <button
-                    key={h.value}
-                    type="button"
-                    onClick={() => setForm(f => ({ ...f, buyingHorizon: h.value }))}
-                    className={cn(
-                      'rounded-lg border p-3 text-left transition-all',
-                      form.buyingHorizon === h.value
-                        ? 'border-amber-500 bg-amber-50 ring-1 ring-amber-400'
-                        : 'border-gray-200 bg-white hover:border-gray-300'
-                    )}
+              {/* Category + Sub-category row */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: 'var(--muted)' }}>
+                    Category
+                  </label>
+                  <select
+                    className="w-full rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
+                    value={form.category}
+                    onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
                   >
-                    <div className="font-bold text-sm">{h.label}</div>
-                    <div className="text-xs font-medium mb-1" style={{ color: 'var(--accent)' }}>{h.sublabel}</div>
-                    <div className="text-xs leading-snug" style={{ color: 'var(--muted)' }}>{h.desc}</div>
-                  </button>
-                ))}
+                    {CATEGORIES.map(c => (
+                      <option key={c.value} value={c.value} disabled={c.disabled}>
+                        {c.value}{c.disabled ? ' (coming soon)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: 'var(--muted)' }}>
+                    Sub-category
+                  </label>
+                  <select
+                    className="w-full rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
+                    value={form.subCategory}
+                    onChange={e => setForm(f => ({ ...f, subCategory: e.target.value }))}
+                  >
+                    {SUBCATEGORIES.map(c => (
+                      <option key={c.value} value={c.value} disabled={c.disabled}>
+                        {c.value}{c.disabled ? ' (coming soon)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-            </div>
 
-            {/* Filters row */}
-            <div className="rounded-lg border p-4 space-y-4" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
-              <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>
-                Filters
-              </div>
-
-              {/* Price Band */}
+              {/* Trend Keywords */}
               <div>
-                <div className="text-xs font-medium mb-2">Target Price Band</div>
-                <div className="flex flex-wrap gap-2">
-                  {PRICE_BANDS.map(band => (
+                <label className="block text-sm font-semibold mb-1">
+                  Trend Keywords <span className="text-xs font-normal" style={{ color: 'var(--muted)' }}>(optional)</span>
+                </label>
+                <p className="text-xs mb-2" style={{ color: 'var(--muted)' }}>
+                  Add adjectives or modifiers to refine the search — e.g. vibe, print, silhouette detail. Sub-category is always the base.
+                </p>
+                <textarea
+                  rows={3}
+                  className="w-full rounded-lg border px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
+                  placeholder='e.g. "earthy utility cargo" or "floral print summer casual"'
+                  value={form.keywords ?? ''}
+                  onChange={e => setForm(f => ({ ...f, keywords: e.target.value }))}
+                />
+              </div>
+
+              {/* Buying Horizon */}
+              <div>
+                <label className="block text-sm font-semibold mb-1">Buying Horizon</label>
+                <p className="text-xs mb-3" style={{ color: 'var(--muted)' }}>
+                  When do you need to commit inventory? This shapes what signal confidence level is required.
+                </p>
+                <div className="grid grid-cols-3 gap-3">
+                  {BUYING_HORIZONS.map(h => (
                     <button
-                      key={band.value}
+                      key={h.value}
                       type="button"
-                      onClick={() => setForm(f => ({ ...f, priceBand: band.value }))}
+                      onClick={() => setForm(f => ({ ...f, buyingHorizon: h.value }))}
                       className={cn(
-                        'px-3 py-1.5 rounded-full border text-xs font-medium transition-all',
-                        form.priceBand === band.value
-                          ? 'border-amber-500 bg-amber-50 text-amber-800 ring-1 ring-amber-400'
-                          : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                        'rounded-lg border p-3 text-left transition-all',
+                        form.buyingHorizon === h.value
+                          ? 'border-amber-500 bg-amber-50 ring-1 ring-amber-400'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
                       )}
                     >
-                      {band.label}
+                      <div className="font-bold text-sm">{h.label}</div>
+                      <div className="text-xs font-medium mb-1" style={{ color: 'var(--accent)' }}>{h.sublabel}</div>
+                      <div className="text-xs leading-snug" style={{ color: 'var(--muted)' }}>{h.desc}</div>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Fabric */}
-              <div>
-                <div className="text-xs font-medium mb-2">Fabric</div>
-                <div className="flex flex-wrap gap-2">
-                  {FABRICS.map(fab => (
-                    <button
-                      key={fab}
-                      type="button"
-                      onClick={() => setForm(f => ({ ...f, fabric: fab }))}
-                      className={cn(
-                        'px-3 py-1.5 rounded-full border text-xs font-medium transition-all',
-                        form.fabric === fab
-                          ? 'border-amber-500 bg-amber-50 text-amber-800 ring-1 ring-amber-400'
-                          : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
-                      )}
-                    >
-                      {fab}
-                    </button>
-                  ))}
+              {/* Filters row */}
+              <div className="rounded-lg border p-4 space-y-4" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
+                <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>
+                  Filters
+                </div>
+
+                {/* Price Band */}
+                <div>
+                  <div className="text-xs font-medium mb-2">Target Price Band</div>
+                  <div className="flex flex-wrap gap-2">
+                    {PRICE_BANDS.map(band => (
+                      <button
+                        key={band.value}
+                        type="button"
+                        onClick={() => setForm(f => ({ ...f, priceBand: band.value }))}
+                        className={cn(
+                          'px-3 py-1.5 rounded-full border text-xs font-medium transition-all',
+                          form.priceBand === band.value
+                            ? 'border-amber-500 bg-amber-50 text-amber-800 ring-1 ring-amber-400'
+                            : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                        )}
+                      >
+                        {band.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Fabric */}
+                <div>
+                  <div className="text-xs font-medium mb-2">Fabric</div>
+                  <div className="flex flex-wrap gap-2">
+                    {FABRICS.map(fab => (
+                      <button
+                        key={fab}
+                        type="button"
+                        onClick={() => setForm(f => ({ ...f, fabric: fab }))}
+                        className={cn(
+                          'px-3 py-1.5 rounded-full border text-xs font-medium transition-all',
+                          form.fabric === fab
+                            ? 'border-amber-500 bg-amber-50 text-amber-800 ring-1 ring-amber-400'
+                            : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                        )}
+                      >
+                        {fab}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Buyer Note */}
+            </fieldset>
+
+            {/* Buyer Note — always editable regardless of mode */}
             <div>
               <label className="block text-sm font-semibold mb-1">
                 Buyer Note <span className="text-xs font-normal" style={{ color: 'var(--muted)' }}>(optional)</span>
@@ -318,13 +392,19 @@ export default function IntakePage() {
               type="submit"
               disabled={loading}
               className="w-full rounded-lg py-3.5 px-6 font-semibold text-white text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ background: 'var(--accent)' }}
+              style={{ background: mode === 'demo' ? '#b45309' : 'var(--accent)' }}
             >
-              {loading ? 'Running Analysis…' : '⚡ Run TrendBet Analysis'}
+              {loading
+                ? 'Running Analysis…'
+                : mode === 'demo'
+                  ? '📦 Load Pre-loaded Demo Report'
+                  : '⚡ Run Live TrendBet Analysis'}
             </button>
 
             <p className="text-center text-xs" style={{ color: 'var(--muted)' }}>
-              Analysis typically takes 30–90 seconds to process market signals.
+              {mode === 'demo'
+                ? 'Loads cached Kaftan Co-ord Set report instantly — no API keys required.'
+                : 'Live analysis typically takes 30–90 seconds to process market signals.'}
             </p>
           </form>
         </div>
