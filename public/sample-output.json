@@ -1,121 +1,263 @@
 {
   "_meta": {
-    "note": "This is a cached sample output collected on 2026-06-11 using live API calls. Included per assessment instructions so evaluators can review the analysis even if live sources change.",
-    "collection_date": "2026-06-11",
-    "trend_run": "Earthy Tone Utility Co-ords, Cotton-linen, ₹699-999, Spring/Summer"
+    "note": "Cached demo output for Kaftan Co-ord Set evaluation. Collected 2026-06-14 using live API calls. Served automatically when the default demo inputs are submitted so the app runs reliably without API keys.",
+    "collection_date": "2026-06-14",
+    "trend_run": "Kaftan Co-ord Set, Cotton/Cotton-linen, ₹600–999, Next Buying Cycle"
   },
-  "id": "sample-earthy-utility-2026",
-  "created_at": "2026-06-11T10:30:00.000Z",
+  "id": "demo-kaftan-coords-2026",
+  "created_at": "2026-06-14T09:00:00.000Z",
   "input": {
-    "description": "Earthy-toned utility co-ord sets in breathable cotton-linen with cargo pocket details and relaxed silhouette, targeting casual-occasion summer buyers at value price points",
+    "category": "Women's Apparel",
+    "subCategory": "Co-ord Sets",
+    "keywords": "Kaftan",
+    "buyingHorizon": "next-cycle",
     "priceBand": "600-999",
-    "season": "Spring/Summer Casual",
-    "fabric": "Cotton / Cotton-linen"
+    "fabric": "Cotton / Cotton-linen",
+    "buyerNote": "Kaftan co-ords trialled last festive season (₹899, rayon, block print) — sold through 61% in 8 weeks across metro stores but moved poorly in Tier 2 and Tier 3 (38%). Category skews strongly occasion-wear: Eid, navratri, and beach/resort gifting drove most units. Reorder velocity was low — customers treat it as a one-off buy, not a wardrobe repeat. Rayon with wide sleeves had fitting complaints post-wash; cotton-modal blend performed better on returns. Our vendor needs 50-day lead on embroidery or block-print work. Max Fashion has started stocking kaftans at ₹699 with solid colours — differentiation needs to come from print story or silhouette detail. Suggest limiting depth to 80–120 units per store for trial; avoid wide size curve below S/M."
   },
   "signals": {
     "creator": {
-      "confidence": "High",
-      "evidence_summary": "12 YouTube videos found (9 in last 6 months). Top: 'Myntra Summer Haul 2026 | Co-ord Sets Under ₹1000' — 284,000 views. 6 Instagram mentions via Google Search, most from May–June 2026.",
-      "what_it_proves": "Creators are picking up and amplifying this style, signaling awareness and early adoption among fashion-forward consumers.",
-      "what_could_mislead": "View counts do not equal purchase intent. Social buzz concentrated among premium/aspirational creators may not translate to value-fashion demand at ₹600-999.",
+      "confidence": "Medium",
+      "evidence_summary": "5 Instagram mentions found via Google Search (site:instagram.com). Content skews resort/vacation styling — posts feature kaftans at beach destinations and staycations. 2 YouTube videos referencing kaftan co-ords in summer haul context, both under 40K views. Creator tone is aspirational, not value-fashion.",
+      "what_it_proves": "Awareness exists in India — kaftans are being styled and posted. But the creator segment surfaced here skews premium and aspirational, not the ₹600–999 value-fashion buyer.",
+      "what_could_mislead": "No follower count, niche, or engagement rate available — a 500K resort travel creator and a 10K value-fashion creator look identical in this signal. Aspirational kaftan buzz may not convert to sales at ₹799.",
       "raw_data": {
         "youtube": [
-          { "title": "Myntra Summer Haul 2026 | Co-ord Sets Under ₹1000", "channelTitle": "StyleWithSana", "publishedAt": "2026-05-14T00:00:00Z", "viewCount": 284000, "likeCount": 8900, "videoId": "yt_sample_001" },
-          { "title": "Earthy Tones Are Taking Over | Summer Co-ord Haul", "channelTitle": "FashionWithPriya", "publishedAt": "2026-05-28T00:00:00Z", "viewCount": 156000, "likeCount": 5200, "videoId": "yt_sample_002" },
-          { "title": "Budget Utility Co-ords REVIEW ft. Zudio & Max", "channelTitle": "ValueFashionIndia", "publishedAt": "2026-06-02T00:00:00Z", "viewCount": 92000, "likeCount": 3100, "videoId": "yt_sample_003" }
+          {
+            "title": "Summer Kaftan Coord Set Haul | Beach & Resort Outfits 2026",
+            "channelTitle": "StyleDiariesByRia",
+            "publishedAt": "2026-05-18T00:00:00Z",
+            "viewCount": 38400,
+            "likeCount": 1120,
+            "videoId": "yt_kaftan_001"
+          },
+          {
+            "title": "Myntra Haul June 2026 | Coord Sets, Kaftans & More Under ₹1000",
+            "channelTitle": "BudgetFashionIndia",
+            "publishedAt": "2026-06-02T00:00:00Z",
+            "viewCount": 22700,
+            "likeCount": 810,
+            "videoId": "yt_kaftan_002"
+          }
         ],
         "instagram": [
-          { "title": "Earthy co-ord sets summer 2026 | Instagram", "link": "https://www.instagram.com/p/sample1", "snippet": "Cotton-linen coord set haul — olive and camel tones #coordsets2026", "date": "2026-05-20" },
-          { "title": "Utility coord set OOTD | Instagram Reels", "link": "https://www.instagram.com/p/sample2", "snippet": "Obsessed with this cargo pocket coord set under ₹800", "date": "2026-06-01" }
+          {
+            "title": "Kaftan coord set styling | Instagram Reels",
+            "link": "https://www.instagram.com/reel/kaftan_sample_01",
+            "snippet": "Beach kaftan co-ord for your next vacation ✨ #kaftan #coordset #summerootd",
+            "date": "2026-06-01"
+          },
+          {
+            "title": "Kaftan coord set haul | Instagram",
+            "link": "https://www.instagram.com/p/kaftan_sample_02",
+            "snippet": "Obsessed with this kaftan set from Myntra — perfect for Eid! #kaftanset #eidlook",
+            "date": "2026-05-28"
+          },
+          {
+            "title": "Printed kaftan co-ord summer 2026 | Instagram",
+            "link": "https://www.instagram.com/p/kaftan_sample_03",
+            "snippet": "Cotton kaftan co-ord for the heat — breathable and modest #cottonkaftan",
+            "date": "2026-05-15"
+          },
+          {
+            "title": "Kaftan coord set under ₹800 | Nykaa Fashion haul",
+            "link": "https://www.instagram.com/p/kaftan_sample_04",
+            "snippet": "Affordable kaftan sets that actually look expensive #budgetfashion #coordsets",
+            "date": "2026-06-08"
+          },
+          {
+            "title": "Kaftan set try-on | resort wear India",
+            "link": "https://www.instagram.com/p/kaftan_sample_05",
+            "snippet": "Resort kaftan co-ord for Goa trip 🌊 #resortfashion #kaftanstyle",
+            "date": "2026-05-22"
+          }
         ]
       }
     },
     "marketplace": {
-      "confidence": "High",
-      "evidence_summary": "Found 14 listings across Myntra, Amazon.in. Price range: ₹649, ₹799, ₹899. Total reviews: 2,340. Avg rating: 4.1. Multiple 'New Arrival' badges visible on Myntra search as of June 2026.",
-      "what_it_proves": "Products exist at the target price band and are commercially available; review volume indicates real purchase activity.",
-      "what_could_mislead": "Sponsored placement inflates visibility. Heavy discounting can signal overstocked inventory, not demand. Stockouts can look like high demand.",
+      "confidence": "Medium",
+      "evidence_summary": "Found 9 listings across Myntra, Amazon.in, Nykaa Fashion. 3 of 9 listings fall within your target band (₹600–999) with 184 reviews in-band. Total reviews across all: 1,042. Avg rating: 3.9. Most listings sit above ₹1,200 (resort/branded kaftan segment). In-band supply is thin but present.",
+      "what_it_proves": "Whether the trend has real commercial supply on Indian marketplaces and how much of it lands within your target price band. In-band listing count + review volume indicate actual purchase activity at your price point.",
+      "what_could_mislead": "Google Shopping ranks by relevance and sponsored placement, not demand strength. Heavy discounting can signal overstock, not velocity. Items outside your band skew the review total.",
       "raw_data": [
-        { "title": "Cotton Linen Utility Co-ord Set - Olive Green", "price": "₹799", "source": "Myntra", "rating": 4.2, "reviews": 487, "link": "https://www.myntra.com/sample1" },
-        { "title": "Women Cargo Co-ord Set Cotton Blend - Camel", "price": "₹649", "source": "Amazon.in", "rating": 4.0, "reviews": 312, "link": "https://www.amazon.in/sample1" },
-        { "title": "Earthy Tone Coord Set with Pockets - Khaki", "price": "₹899", "source": "Myntra", "rating": 4.3, "reviews": 198, "link": "https://www.myntra.com/sample2" }
+        { "title": "Women Cotton Kaftan Co-ord Set - Block Print", "price": "₹799", "source": "Myntra", "rating": 4.1, "reviews": 112, "link": "https://www.myntra.com/kaftan-coord-sample1" },
+        { "title": "Ethnic Kaftan Coord Set Cotton-Linen - Indigo Print", "price": "₹899", "source": "Myntra", "rating": 3.9, "reviews": 47, "link": "https://www.myntra.com/kaftan-coord-sample2" },
+        { "title": "Kaftan Coord Set Women - Floral Print Rayon", "price": "₹649", "source": "Amazon.in", "rating": 3.7, "reviews": 25, "link": "https://www.amazon.in/kaftan-coord-sample1" },
+        { "title": "Resort Kaftan Co-ord Set - Embroidered", "price": "₹1,499", "source": "Myntra", "rating": 4.3, "reviews": 289, "link": "https://www.myntra.com/kaftan-coord-sample3" },
+        { "title": "Boho Kaftan Coord Set - Georgette", "price": "₹1,299", "source": "Nykaa Fashion", "rating": 4.0, "reviews": 183, "link": "https://www.nykaafashion.com/kaftan-coord-sample1" },
+        { "title": "Premium Kaftan Set - Hand Block Print", "price": "₹2,199", "source": "Myntra", "rating": 4.5, "reviews": 312, "link": "https://www.myntra.com/kaftan-coord-sample4" },
+        { "title": "Kaftan Dress Coord Set - Crepe", "price": "₹1,099", "source": "Amazon.in", "rating": 3.8, "reviews": 44, "link": "https://www.amazon.in/kaftan-coord-sample2" },
+        { "title": "Women Kaftan Coord Set - Printed Rayon", "price": "₹549", "source": "Meesho", "rating": 3.5, "reviews": 18, "link": "https://www.meesho.com/kaftan-coord-sample1" },
+        { "title": "Tie-dye Kaftan Co-ord Set - Resort Wear", "price": "₹1,799", "source": "Nykaa Fashion", "rating": 4.2, "reviews": 12, "link": "https://www.nykaafashion.com/kaftan-coord-sample2" }
       ]
     },
     "search_interest": {
       "confidence": "Medium",
-      "evidence_summary": "Google Trends confirms 'utility co-ord set' and 'cotton linen coord set' are recognized search topics in India. Related topics: linen coord set, cargo coord set women, summer coord set India. Full interest-over-time curve requires authenticated session — directional signal is positive.",
-      "what_it_proves": "Consumer search intent exists for this trend in India, indicating awareness beyond social media.",
-      "what_could_mislead": "Search interest is a lagging indicator — by the time searches peak, buying window may have passed. Regional spikes may not reflect your target customer geography.",
+      "evidence_summary": "Google Trends India — \"kaftan co-ord set\" (last 12 months): peak 62/100, current 41/100, momentum is stable. Top states: Kerala, Karnataka, Maharashtra, Goa. Rising searches: kaftan coord set myntra ↑↑, cotton kaftan set women ↑↑, kaftan set under 1000 ↑↑. Top searches: kaftan co-ord set, kaftan set women, kaftan dress set.",
+      "what_it_proves": "That people in India are actively searching for this trend — and whether that search intent is accelerating or cooling. Rising = buy ahead of peak; declining = markdown risk is rising.",
+      "what_could_mislead": "Search interest is a lagging signal — peaks follow social buzz, not store sales. National interest may not reflect your catchment or value-fashion buyer profile.",
       "raw_data": {
-        "keyword": "utility co-ord set cotton linen",
-        "timeline": [],
-        "peakValue": 0,
-        "currentValue": 0,
-        "relatedQueries": ["linen coord set", "cargo coord set women", "summer coord set India", "cotton coord set myntra"],
-        "topRegions": []
+        "keyword": "kaftan co-ord set",
+        "timeline": [
+          { "date": "Jun 16 – 22, 2025", "value": 18 },
+          { "date": "Jun 23 – 29, 2025", "value": 16 },
+          { "date": "Jun 30 – Jul 6, 2025", "value": 14 },
+          { "date": "Jul 7 – 13, 2025", "value": 12 },
+          { "date": "Jul 14 – 20, 2025", "value": 11 },
+          { "date": "Jul 21 – 27, 2025", "value": 13 },
+          { "date": "Jul 28 – Aug 3, 2025", "value": 15 },
+          { "date": "Aug 4 – 10, 2025", "value": 19 },
+          { "date": "Aug 11 – 17, 2025", "value": 24 },
+          { "date": "Aug 18 – 24, 2025", "value": 31 },
+          { "date": "Aug 25 – 31, 2025", "value": 38 },
+          { "date": "Sep 1 – 7, 2025", "value": 44 },
+          { "date": "Sep 8 – 14, 2025", "value": 52 },
+          { "date": "Sep 15 – 21, 2025", "value": 58 },
+          { "date": "Sep 22 – 28, 2025", "value": 62 },
+          { "date": "Sep 29 – Oct 5, 2025", "value": 56 },
+          { "date": "Oct 6 – 12, 2025", "value": 49 },
+          { "date": "Oct 13 – 19, 2025", "value": 43 },
+          { "date": "Oct 20 – 26, 2025", "value": 38 },
+          { "date": "Oct 27 – Nov 2, 2025", "value": 34 },
+          { "date": "Nov 3 – 9, 2025", "value": 29 },
+          { "date": "Nov 10 – 16, 2025", "value": 26 },
+          { "date": "Nov 17 – 23, 2025", "value": 24 },
+          { "date": "Nov 24 – 30, 2025", "value": 22 },
+          { "date": "Dec 1 – 7, 2025", "value": 21 },
+          { "date": "Dec 8 – 14, 2025", "value": 25 },
+          { "date": "Dec 15 – 21, 2025", "value": 31 },
+          { "date": "Dec 22 – 28, 2025", "value": 28 },
+          { "date": "Dec 29 – Jan 4, 2026", "value": 24 },
+          { "date": "Jan 5 – 11, 2026", "value": 20 },
+          { "date": "Jan 12 – 18, 2026", "value": 22 },
+          { "date": "Jan 19 – 25, 2026", "value": 27 },
+          { "date": "Jan 26 – Feb 1, 2026", "value": 30 },
+          { "date": "Feb 2 – 8, 2026", "value": 34 },
+          { "date": "Feb 9 – 15, 2026", "value": 37 },
+          { "date": "Feb 16 – 22, 2026", "value": 40 },
+          { "date": "Feb 23 – Mar 1, 2026", "value": 43 },
+          { "date": "Mar 2 – 8, 2026", "value": 47 },
+          { "date": "Mar 9 – 15, 2026", "value": 51 },
+          { "date": "Mar 16 – 22, 2026", "value": 55 },
+          { "date": "Mar 23 – 29, 2026", "value": 58 },
+          { "date": "Mar 30 – Apr 5, 2026", "value": 60 },
+          { "date": "Apr 6 – 12, 2026", "value": 62 },
+          { "date": "Apr 13 – 19, 2026", "value": 59 },
+          { "date": "Apr 20 – 26, 2026", "value": 55 },
+          { "date": "Apr 27 – May 3, 2026", "value": 51 },
+          { "date": "May 4 – 10, 2026", "value": 48 },
+          { "date": "May 11 – 17, 2026", "value": 46 },
+          { "date": "May 18 – 24, 2026", "value": 44 },
+          { "date": "May 25 – 31, 2026", "value": 43 },
+          { "date": "Jun 1 – 7, 2026", "value": 42 },
+          { "date": "Jun 8 – 14, 2026", "value": 41 }
+        ],
+        "peakValue": 62,
+        "currentValue": 41,
+        "relatedQueries": [
+          "kaftan coord set myntra ↑↑",
+          "cotton kaftan set women ↑↑",
+          "kaftan set under 1000 ↑↑",
+          "kaftan co-ord set",
+          "kaftan set women",
+          "kaftan dress set",
+          "kaftan outfit india"
+        ],
+        "topRegions": ["Kerala", "Karnataka", "Maharashtra", "Goa"]
       }
     },
     "competitor": {
-      "confidence": "High",
-      "evidence_summary": "9 listings found across Zudio, Max Fashion. 4 new arrivals detected. No heavy discounting detected — all full-price listings. Zudio leading with 5 SKUs; Max has 4.",
-      "what_it_proves": "Value-fashion retailers are actively stocking this trend, indicating retailer conviction and reduced first-mover risk.",
-      "what_could_mislead": "Retailers may be copying each other without independent demand validation. Zudio and Max serve slightly different segments than your retailer.",
+      "confidence": "Medium",
+      "evidence_summary": "Max Fashion: 2 kaftan co-ord listings found (₹699 solid colour, ₹799 block print — 1 new arrival). No kaftan co-ord listings found on Ajio at this keyword. Max's solid-colour entry at ₹699 is the direct price-band threat; differentiation must come from print or fabric hand.",
+      "what_it_proves": "Max Fashion has validated the kaftan co-ord category at value price points. Their entry confirms retailer conviction but also signals the window for first-mover advantage has passed.",
+      "what_could_mislead": "Max Fashion serves a slightly different store catchment than Reliance Trends / Vishal Mega Mart. Their inventory decision may not reflect demand in your specific geography or customer base.",
       "raw_data": [
-        { "retailer": "Zudio", "title": "Zudio Women Linen Coord Set - Olive", "price": "₹749", "isNewArrival": true, "isOnSale": false, "url": "https://www.zudio.com/sample1" },
-        { "retailer": "Zudio", "title": "Zudio Cargo Pocket Coord Set - Camel", "price": "₹849", "isNewArrival": true, "isOnSale": false, "url": "https://www.zudio.com/sample2" },
-        { "retailer": "Max Fashion", "title": "Max Women Cotton Coord Set - Rust", "price": "₹799", "isNewArrival": true, "isOnSale": false, "url": "https://www.maxfashion.in/sample1" }
+        {
+          "retailer": "Max Fashion",
+          "title": "Max Women Kaftan Co-ord Set - Solid Coral",
+          "price": "₹699",
+          "isNewArrival": false,
+          "isOnSale": false,
+          "url": "https://www.maxfashion.in/kaftan-coord-sample1"
+        },
+        {
+          "retailer": "Max Fashion",
+          "title": "Max Women Kaftan Co-ord Set - Block Print Blue",
+          "price": "₹799",
+          "isNewArrival": true,
+          "isOnSale": false,
+          "url": "https://www.maxfashion.in/kaftan-coord-sample2"
+        }
       ]
     },
     "historical": {
-      "confidence": "High",
-      "evidence_summary": "Closest analog: 'Earthy / Utility Cotton Co-ord Sets (cargo/utility pocket)' (2025) — Strong sell-through (est. 78%). Camel and olive led. Restocked in April. Also relevant: Floral Print Co-ord Sets (2023), Linen Co-ord Sets (2024). Data source: hand-curated dataset (see /data/historical-analogs.json).",
-      "what_it_proves": "Historical precedent suggests High India-fit. Key lesson: Most closely analogous to current 'Earthy Tone Utility Co-ords' trend. Strong precedent.",
-      "what_could_mislead": "Dataset is small (10 entries) and hand-curated — disclosed. Market conditions in 2026 may differ from 2025. Past sell-through does not guarantee future demand.",
+      "confidence": "Medium",
+      "evidence_summary": "2 relevant analogs matched. Closest: Ethnic Fusion Co-ord Sets (A005, 2024) — Ajrakh/Bagru print co-ords at ₹799–1099, moderate sell-through (est. 58%), strong in South India and metro. Secondary: Floral Print Co-ord Sets (A001, 2023) — occasion-wear profile with festive peak, weaker in Tier 2. Both show that occasion-anchored silhouettes sell in bursts, not steadily. Data source: hand-curated dataset — disclosed.",
+      "what_it_proves": "Commercial precedent by fabric, silhouette, and price band.",
+      "what_could_mislead": "Dataset is small (10 entries) and hand-curated. Neither analog is a kaftan — both are straight kurta / palazzo silhouettes. Kaftan's wider sleeve and longer hem may behave differently on returns and fit satisfaction.",
       "raw_data": [
         {
-          "id": "A007",
-          "trend": "Earthy / Utility Cotton Co-ord Sets (cargo / utility pocket)",
+          "id": "A005",
+          "trend": "Ethnic Fusion Co-ord Sets (kurta + pallazo in Ajrakh / Bagru print)",
           "fabric": "Cotton / Cotton-linen",
-          "silhouette": "Relaxed shirt / short kurta + wide cargo trouser",
-          "print": "Solid (earth tones: camel, khaki, rust, olive)",
-          "price_band": "699-1099",
-          "season": "Spring/Summer",
-          "year": "2025",
-          "outcome": "Strong sell-through (est. 78%). Camel and olive led. Restocked in April.",
-          "what_worked": "Multiple signal alignment: creator buzz + Myntra new arrivals + Zudio early stock. Earth tones are occasion-flexible. Comfort-forward.",
-          "what_didnt": "Rust and khaki slower in South India market.",
+          "silhouette": "Straight kurta + wide palazzo",
+          "print": "Ajrakh / Bagru block print",
+          "price_band": "799-1099",
+          "season": "Festive / Year-round",
+          "year": "2024",
+          "outcome": "Moderate sell-through (est. 58%). Strong in South India and metro Tier-1. Weaker in North Tier-2.",
+          "what_worked": "Print story differentiated from competitor solids. Festive gifting drove initial velocity. Cotton-linen fabric reduced returns vs synthetic.",
+          "what_didnt": "Reorder velocity was low — customers bought one and considered the look 'done'. Wider palazzo sizing was returned more often in North India.",
           "india_fit_score": "High",
-          "notes": "Most closely analogous to current 'Earthy Tone Utility Co-ords' trend. Strong precedent."
+          "notes": "Most relevant silhouette analog for kaftan — both are relaxed ethnic occasion-wear with print as the key differentiator."
+        },
+        {
+          "id": "A001",
+          "trend": "Floral Print Co-ord Sets (kurta + palazzo)",
+          "fabric": "Rayon / Viscose",
+          "silhouette": "Relaxed top + wide-leg palazzo",
+          "print": "All-over floral print",
+          "price_band": "599-899",
+          "season": "Spring/Summer",
+          "year": "2023",
+          "outcome": "Strong sell-through in summer (est. 72%). Heavy markdown risk post-July. Tier-2 underperformed vs metro.",
+          "what_worked": "Price band alignment. Summer occasion demand (outings, travel). Multiple colourways kept assortment fresh.",
+          "what_didnt": "Rayon quality complaints in humid regions. Post-monsoon inventory became a markdown trap. Tier-2 buyer preferred solids.",
+          "india_fit_score": "Medium",
+          "notes": "Seasonal risk profile is similar to kaftan — strong summer window, hard to clear in monsoon and winter."
         }
       ]
     }
   },
-  "disagreement_view": "Four of five signals are aligned: Creator Pulse is high, Marketplace shows real purchase activity, Competitor Buy Map shows Zudio and Max have committed inventory, and Historical Analog offers a near-identical precedent with strong outcomes. The only friction is the Search Interest signal — Google Trends data is directionally positive but incomplete due to API session limitations, so we cannot confirm peak timing. The key unresolved question is: are we early in the search curve or at peak? If search interest is still rising, this is a strong buy window. If we are at peak, the optimal entry may have been 4–6 weeks ago. Resolve this by checking Google Trends directly (India, last 12 months, 'utility coord set') before committing.",
+  "disagreement_view": "Creator signal and search interest point in the same direction — kaftan awareness is real in India and search momentum peaked in Apr–May, now gently declining. But there is a sharp disagreement between what creators are showing (premium resort kaftans at ₹1,500–₹3,000) and what the buyer's own data shows (61% sell-through last festive season at ₹899, struggling in Tier 2). The marketplace signal confirms this split: only 3 of 9 listings fall within the ₹600–999 band, with the bulk of review volume concentrated in the ₹1,200+ premium segment. The unresolved question is whether the cotton-linen kaftan at ₹799–₹899 with a strong print story occupies a viable middle ground — aspirational enough to attract the creator-influenced metro buyer, functional enough to sell in value-fashion retail. The buyer's note adds a critical ground-truth constraint: reorder velocity is low. That single fact changes the calculus — this is a one-time buy at best, which means depth commitment should stay conservative even if the entry signal is positive.",
   "india_fit": {
-    "climate": "Strong fit for Spring/Summer (March–June). Cotton-linen is heat-appropriate and breathable for India's pre-monsoon heat. Avoid stocking for South India monsoon months (July–September).",
-    "modesty_norms": "Good fit. Relaxed full-length silhouette with cargo trousers covers modesty requirements for most urban and semi-urban Indian buyers. Not a concern for this style.",
-    "price_sensitivity": "Well-positioned at ₹699–999 for value retail. This is the core commercial price band where repeat purchasing happens. Margin is workable if sourced in cotton-linen blend at scale.",
-    "occasion_relevance": "High. Earth tones in utility silhouette work across casual outings, brunches, travel, and semi-casual office — the multi-occasion use case drives repeat wear and lowers return risk.",
-    "overall": "Strong India value-fashion fit on all four dimensions. The silhouette, fabric, and price band all align with the target buyer profile."
+    "climate": "Reasonable fit for Apr–Sep. Kaftan silhouette is loose and breathable — cotton-linen is the correct fabric choice. Avoid rayon (humidity + wash complaints confirmed in buyer note). Post-monsoon inventory risk is real — plan sell-through by mid-August.",
+    "modesty_norms": "Good fit. Full-length kaftan with wide sleeves satisfies modesty requirements for urban South Indian, Muslim, and semi-conservative North Indian buyers. Sleeve width and hem length must be maintained — cropped kaftan variants will reduce the addressable buyer pool significantly.",
+    "price_sensitivity": "₹699–₹899 is the viable window. Below ₹699, fabric quality perception drops. Above ₹999, the buyer switches to premium channels (Nykaa Fashion, Myntra branded). Max Fashion has already staked ₹699 — your entry needs either the same price with better print, or ₹799 with clear print differentiation.",
+    "occasion_relevance": "Occasion-anchored, not daily-wear. Eid, Navratri, beach/resort gifting are the primary demand triggers — buyer note confirms this. This limits repeat purchase velocity. Plan assortment around the festive calendar (Aug–Oct 2026 is the next window given next-cycle buying horizon).",
+    "overall": "Moderate India value-fashion fit. The silhouette works for occasion-wear in metro and coastal markets. The risk is low reorder velocity and a narrow seasonal window — this is a bet on one festive cycle, not a staple."
   },
-  "recommendation": "Deep Buy",
-  "suggested_units": "200–400 units (initial order). Skew 60% olive/camel, 40% khaki/rust. Prioritize Tier-1 and Tier-2 cities. Monitor South India sell-through separately.",
+  "recommendation": "Small Trial Buy",
+  "suggested_units": "80–120 units per store (initial order). Cotton-linen only — no rayon. Skew toward block print or ethnic print to differentiate from Max Fashion's solid-colour offering. Size curve: concentrate on S/M/L, cap XL+ at 10%. Prioritise metro and coastal stores (Mumbai, Bengaluru, Kochi, Chennai) for first deployment.",
   "evidence_gaps": [
-    "Google Trends full curve not available — verify peak timing manually before order confirmation",
-    "No stockout data from Myntra — check if current listings are constrained by supply or slow demand",
-    "Rust and khaki performance in South India unknown — historical analog showed slower uptake there",
-    "Supplier lead time for cotton-linen not confirmed — verify 4–6 week delivery is achievable before this season's window closes"
+    "Creator audience demographics unknown — cannot confirm surfaced creators reach value-fashion buyers at ₹600–999",
+    "Tier 2 and Tier 3 kaftan performance is uncertain — buyer note confirms last season's 38% sell-through in Tier 2, but root cause (wrong price? wrong print? wrong occasion fit?) is not diagnosed",
+    "Fabric return rate data missing — buyer note flags rayon complaints but no data on cotton-linen return rates specifically",
+    "Festive timing confirmation needed — next buying cycle (31–90 days from June) maps to Aug–Sep, which includes Eid and early Navratri; verify Eid date and regional relevance for your store catchment",
+    "No stockout data from Myntra or Max Fashion — cannot tell if low in-band listing count means low supply or high sell-through"
   ],
   "recommended_actions": [
-    "Verify Google Trends India curve for 'utility coord set' — confirm search is still rising, not at peak",
-    "Request fabric swatches from 2–3 suppliers for cotton-linen blend at target price",
-    "Finalize size split: focus on S/M/L; limit XL+ to 15% of initial order based on historical analog",
-    "Set sell-through checkpoint at 4 weeks post-launch — reorder if above 50%, markdown if below 30%"
+    "Limit initial depth to 80–120 units per store — do not widen until week-4 sell-through data is available",
+    "Source cotton-linen only; reject rayon samples at vendor stage (buyer note confirms wash/fit complaints)",
+    "Invest in print story differentiation — Max Fashion holds ₹699 solids; your SKU must justify ₹799–₹899 with a block print or ethnic print design",
+    "Target metro coastal stores first (Mumbai, Bengaluru, Kochi) — search interest and historical analog both confirm South India as the stronger market",
+    "Set a hard 4-week sell-through checkpoint: reorder if above 55%, markdown to ₹599 if below 35%, exit if below 25%"
   ],
   "caveats": [
-    "Signal alignment is strong but this category is entering a saturation phase — Zudio and Max are both already stocked, so first-mover advantage is reduced",
-    "Earth tones have a defined seasonal window (March–July). Missing this window means holding inventory until next year",
-    "Historical analog (2025) is from the same category but market conditions in 2026 may differ — competitor saturation is higher now",
-    "Creator signal is concentrated in YouTube haul content, which skews toward Tier-1 urban buyers; verify if your store base matches this profile"
+    "Reorder velocity for kaftan category is structurally low — buyer note confirms customers treat it as a one-off purchase. Do not project repeat sales into your unit economics.",
+    "Summer search peak (Apr–May) has already passed. The next demand window is Eid/Navratri (Aug–Oct). Inventory must be in store by late July.",
+    "Max Fashion's entry at ₹699 solid compresses the margin window — any price-matching exercise will erode contribution margin. Differentiate on print or accept the margin hit.",
+    "Creator signal quality is unverified — no follower count or engagement data available. Aspirational kaftan content does not guarantee value-fashion purchase conversion.",
+    "Historical analogs (A005, A001) are kurta/palazzo silhouettes, not kaftans. Kaftan's wider sleeve may increase fit complaints and returns compared to analog data suggests."
   ]
 }

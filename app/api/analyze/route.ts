@@ -7,8 +7,19 @@ import { fetchSearchTrendsSignal } from '@/lib/signals/search_trends'
 import { fetchHistoricalSignal } from '@/lib/signals/historical'
 import { analyzeWithClaude } from '@/lib/analysis/claude'
 import { randomUUID } from 'crypto'
+import { readFile } from 'fs/promises'
+import { join } from 'path'
 
 export const maxDuration = 120
+
+function isDemoInput(input: TrendInput): boolean {
+  return (
+    input.keywords?.toLowerCase().trim() === 'kaftan' &&
+    input.priceBand === '600-999' &&
+    input.fabric === 'Cotton / Cotton-linen' &&
+    input.buyingHorizon === 'next-cycle'
+  )
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,6 +27,15 @@ export async function POST(req: NextRequest) {
 
     if (!input.priceBand || !input.fabric) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    // Demo mode: serve cached output instantly for the default Kaftan inputs
+    if (isDemoInput(input)) {
+      const cached = await readFile(join(process.cwd(), 'public', 'sample-output.json'), 'utf-8')
+      const demo = JSON.parse(cached)
+      // Preserve the buyer note the user may have edited
+      demo.input.buyerNote = input.buyerNote
+      return NextResponse.json(demo)
     }
 
     // Fetch all 5 signals in parallel

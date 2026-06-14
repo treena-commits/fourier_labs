@@ -148,8 +148,8 @@ export async function fetchSearchTrendsSignal(input: TrendInput): Promise<Signal
       return {
         confidence,
         evidence_summary: `Google Trends India — "${keyword}" (last 12 months): peak ${peakValue}/100, current ${currentValue}/100, momentum is ${trendDirection}.${regionStr}${risingStr}${topStr}`,
-        what_it_proves: 'Consumer search momentum for this trend category in India — direction (rising/stable/declining) is more meaningful than absolute value.',
-        what_could_mislead: 'Search interest is a lagging indicator — peaks often follow the optimal buying window. Regional spikes may not reflect your specific store catchment.',
+        what_it_proves: 'That people in India are actively searching for this trend — and whether that search intent is accelerating or cooling. Rising = buy ahead of peak; declining = markdown risk is rising.',
+        what_could_mislead: 'Search interest is a lagging signal — peaks follow social buzz, not store sales. High national interest may not reflect your catchment regions or value-fashion buyer profile.',
         raw_data: { keyword, timeline, peakValue, currentValue, relatedQueries, topRegions },
       }
     }
@@ -158,8 +158,8 @@ export async function fetchSearchTrendsSignal(input: TrendInput): Promise<Signal
   return {
     confidence: 'Insufficient Data',
     evidence_summary: 'Could not retrieve Google Trends data. Configure SERPAPI_KEY to enable this signal.',
-    what_it_proves: 'Consumer search momentum for the trend in India.',
-    what_could_mislead: 'Search interest is a lagging signal; peaks often follow the optimal buying window.',
+    what_it_proves: 'That people in India are actively searching for this trend — and whether that search intent is accelerating or cooling. Rising = buy ahead of peak; declining = markdown risk is rising.',
+    what_could_mislead: 'Search interest is a lagging signal; peaks follow social buzz, not store sales. National interest may not reflect your catchment or value-fashion buyer profile.',
     raw_data: null,
   }
 }

@@ -30,6 +30,18 @@ function normalizeSource(raw: string): string {
   return 'Other marketplace'
 }
 
+function parsePriceINR(priceStr: string | undefined): number | null {
+  if (!priceStr) return null
+  const cleaned = priceStr.replace(/[₹,\s]/g, '').replace(/[^0-9.]/g, '')
+  const num = parseFloat(cleaned)
+  return isNaN(num) ? null : num
+}
+
+function isInPriceBand(price: number, band: string): boolean {
+  const [low, high] = band.split('-').map(Number)
+  return price >= low && price <= high
+}
+
 function buildMarketplaceKeyword(input: TrendInput): string {
   const fabric = input.fabric.toLowerCase()
   let base = 'co-ord set women'
@@ -95,22 +107,28 @@ export async function fetchMarketplaceSignal(input: TrendInput): Promise<SignalR
   const avgRating = results.filter(r => r.rating).reduce((s, r) => s + (r.rating || 0), 0) / (results.filter(r => r.rating).length || 1)
   const totalReviews = results.reduce((s, r) => s + (r.reviews || 0), 0)
   const sources = [...new Set(results.map(r => r.source))].join(', ')
-  const priceRange = results
-    .filter(r => r.price)
-    .map(r => r.price)
-    .slice(0, 3)
-    .join(', ')
+
+  const inBandResults = results.filter(r => {
+    const price = parsePriceINR(r.price)
+    return price !== null && isInPriceBand(price, input.priceBand)
+  })
+  const inBandCount = inBandResults.length
+  const inBandReviews = inBandResults.reduce((s, r) => s + (r.reviews || 0), 0)
 
   const confidence: SignalResult['confidence'] =
-    results.length >= 8 && totalReviews > 100 ? 'High'
-    : results.length >= 4 ? 'Medium'
+    inBandCount >= 4 && inBandReviews > 50 ? 'High'
+    : inBandCount >= 2 || results.length >= 4 ? 'Medium'
     : 'Low'
+
+  const bandLabel = `₹${input.priceBand}`
+  const inBandStr = `${inBandCount} of ${results.length} listings fall within your target band (${bandLabel})`
+  const reviewStr = inBandReviews > 0 ? ` with ${inBandReviews} reviews in-band` : ''
 
   return {
     confidence,
-    evidence_summary: `Found ${results.length} listings across ${sources}. Price range: ${priceRange || 'N/A'}. Total reviews: ${totalReviews}. Avg rating: ${avgRating.toFixed(1)}.`,
-    what_it_proves: 'Products exist at the target price band and are commercially available; review volume indicates real purchase activity.',
-    what_could_mislead: 'Sponsored placement inflates visibility. Heavy discounting can signal overstocked inventory, not demand. Stockouts can look like high demand.',
+    evidence_summary: `Found ${results.length} listings across ${sources}. ${inBandStr}${reviewStr}. Total reviews across all: ${totalReviews}${results.filter(r => r.rating).length > 0 ? `. Avg rating: ${avgRating.toFixed(1)}` : ''}.`,
+    what_it_proves: 'Whether the trend has real commercial supply on Indian marketplaces and how much of it lands within your target price band. In-band listing count + review volume indicate actual purchase activity at your price point.',
+    what_could_mislead: 'Google Shopping ranks by relevance and sponsored placement, not demand strength. Heavy discounting can signal overstock, not velocity. Items outside your band skew the review total.',
     raw_data: results,
   }
 }

@@ -21,7 +21,7 @@ const CONFIDENCE_STYLES: Record<Confidence, { dot: string; label: string }> = {
 
 const SIGNAL_LABELS = {
   creator: 'Creator Pulse',
-  marketplace: 'Marketplace Velocity',
+  marketplace: 'Marketplace Demand',
   search_interest: 'Search Interest',
   competitor: 'Competitor Buy Map',
   historical: 'Historical Analog',

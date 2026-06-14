@@ -60,15 +60,14 @@ const PIPELINE_STEPS = [
   { id: 'analysis', label: 'Buyer Recommendation', desc: 'AI reasoning layer' },
 ]
 
+const DEFAULT_BUYER_NOTE = `Kaftan co-ords trialled last festive season (₹899, rayon, block print) — sold through 61% in 8 weeks across metro stores but moved poorly in Tier 2 and Tier 3 (38%). Category skews strongly occasion-wear: Eid, navratri, and beach/resort gifting drove most units. Reorder velocity was low — customers treat it as a one-off buy, not a wardrobe repeat. Rayon with wide sleeves had fitting complaints post-wash; cotton-modal blend performed better on returns. Our vendor needs 50-day lead on embroidery or block-print work. Max Fashion has started stocking kaftans at ₹699 with solid colours — differentiation needs to come from print story or silhouette detail. Suggest limiting depth to 80–120 units per store for trial; avoid wide size curve below S/M.`
+
 export default function IntakePage() {
   const router = useRouter()
-  const DEFAULT_BUYER_NOTE =
-    `Last season's earthy-tone co-ords (₹799) sold through 78% in 6 weeks at Pune stores but stalled at 43% in Tier 2. Cotton-linen responds well Apr–Jun; rayon underperforms post-July humidity. Our vendor base turns cargo detailing in 45 days. Zudio competition has compressed our markdown window — anything below 60% sell-through by week 4 goes to flat discount. Shoppers in our catchment skew 22–32, college to early-career, occasion-wear driven.`
-
   const [form, setForm] = useState<TrendInput>({
     category: "Women's Apparel",
     subCategory: 'Co-ord Sets',
-    keywords: '',
+    keywords: 'Kaftan',
     buyingHorizon: 'next-cycle',
     priceBand: '600-999',
     fabric: 'Cotton / Cotton-linen',
