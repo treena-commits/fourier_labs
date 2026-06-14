@@ -14,7 +14,7 @@ export const maxDuration = 120
 
 function isDemoInput(input: TrendInput): boolean {
   return (
-    input.keywords?.toLowerCase().trim() === 'kaftan' &&
+    (input.keywords?.toLowerCase().includes('kaftan') ?? false) &&
     input.priceBand === '600-999' &&
     input.fabric === 'Cotton / Cotton-linen' &&
     input.buyingHorizon === 'next-cycle'

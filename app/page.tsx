@@ -67,7 +67,7 @@ export default function IntakePage() {
   const [form, setForm] = useState<TrendInput>({
     category: "Women's Apparel",
     subCategory: 'Co-ord Sets',
-    keywords: 'Kaftan',
+    keywords: 'Kaftan Coord Set',
     buyingHorizon: 'next-cycle',
     priceBand: '600-999',
     fabric: 'Cotton / Cotton-linen',
