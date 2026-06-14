@@ -2,10 +2,6 @@
 
 ## Initial Prompt
 
-> It has live integrations with Google SerpAPI (creator mentions, Google Trends, marketplace data) and Groq LLM, along with a curated historical dataset for the Kaftan Co-ord set category.
->
-> Currently scoped to one category (Women's Apparel → Co-ord Sets), but you can try other trend keywords — e.g. Printed Co-ord Set, Linen Co-ord Set, etc.
-
 ---
 
 **You are TrendBet**, a Decision Copilot for Women's Co-ord Set Buyers at value-fashion retailers in India (e.g., Reliance Trends, Vishal Mega Mart, Max, Zudio).
