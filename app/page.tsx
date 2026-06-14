@@ -72,15 +72,6 @@ const DEMO_FORM: TrendInput = {
   buyerNote: DEMO_BUYER_NOTE,
 }
 
-const EMPTY_FORM: TrendInput = {
-  category: "Women's Apparel",
-  subCategory: 'Co-ord Sets',
-  keywords: '',
-  buyingHorizon: 'next-cycle',
-  priceBand: '600-999',
-  fabric: 'Cotton / Cotton-linen',
-  buyerNote: '',
-}
 
 export default function IntakePage() {
   const router = useRouter()
@@ -92,7 +83,15 @@ export default function IntakePage() {
 
   function switchMode(next: 'live' | 'demo') {
     setMode(next)
-    setForm(next === 'demo' ? DEMO_FORM : EMPTY_FORM)
+    setForm(next === 'demo' ? DEMO_FORM : {
+      category: "Women's Apparel",
+      subCategory: 'Co-ord Sets',
+      keywords: '',
+      buyingHorizon: 'next-cycle',
+      priceBand: '600-999',
+      fabric: 'Cotton / Cotton-linen',
+      buyerNote: '',
+    })
     setError('')
   }
 
@@ -204,23 +203,11 @@ export default function IntakePage() {
               </div>
             </div>
             <h1 className="text-2xl font-bold mb-2">New Trend Intake</h1>
-            <div className="flex items-start justify-between gap-4">
-              <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
-                {mode === 'demo'
-                  ? 'Pre-loaded with a Kaftan Co-ord Set evaluation. Fields are locked — switch to Live Data to enter your own trend.'
-                  : 'Describe the trend you’re evaluating. TrendBet will cross-reference market signals, search momentum, and competitor inventory to give you an inventory recommendation.'}
-              </p>
-              {mode === 'live' && (
-                <button
-                  type="button"
-                  onClick={() => setForm(EMPTY_FORM)}
-                  className="text-xs flex-shrink-0 underline underline-offset-2 hover:opacity-70 transition-opacity"
-                  style={{ color: 'var(--muted)' }}
-                >
-                  Clear all
-                </button>
-              )}
-            </div>
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
+              {mode === 'demo'
+                ? "Pre-loaded with a Kaftan Co-ord Set evaluation. Fields are locked — switch to Live Data to enter your own trend."
+                : "Describe the trend you’re evaluating. TrendBet will cross-reference market signals, search momentum, and competitor inventory to give you an inventory recommendation."}
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-7">
