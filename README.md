@@ -44,11 +44,10 @@ The output is not a confidence score. It is an actionable inventory decision: **
 | Creator Pulse | YouTube Data API v3 + Google Search for Instagram mentions | Awareness, early adoption, creator amplification | Views ≠ purchases. Aspirational creators may not map to value-fashion buyers. |
 | Marketplace Demand | SerpAPI Google Shopping (`site:myntra.com`, `site:amazon.in`) | Real purchase activity: review counts, price range, new arrival velocity | Sponsored placement inflates rank. Stockouts look like demand. Discounting signals oversupply. |
 | Search Interest | Google Trends India (pytrends / suggest API) | Consumer search momentum in India | Lagging indicator — peak search often follows the optimal buying window. |
-| Competitor Buy Map | Google Search `site:zudio.com` + `site:maxfashion.in` via SerpAPI | Retailer conviction; is the market backing this? | Competitors may be copying each other. Different customer segments. Sale items signal possible overstock. |
+| Competitor Buy Map | Google Search `site:Ajio.com + `site:maxfashion.in` via SerpAPI | Retailer conviction; is the market backing this? | Competitors may be copying each other. Different customer segments. Sale items signal possible overstock. |
 | Historical Analog | Curated dataset of 10 real India co-ord trends (`/data/historical-analogs.json`) | Commercial precedent by fabric, silhouette, price band | Small dataset, hand-curated (disclosed). Past outcomes don't guarantee future demand. |
 
-**Why no direct scraping of Myntra/Amazon/Ajio?** Anti-bot walls will break a demo. SerpAPI's Google Shopping results provide the same product signal (titles, prices, reviews) without brittle scraping. The trade-off is that SerpAPI results have a slight indexing lag (~24–48 hours).
-
+**Why no direct scraping of Myntra/Amazon?** Anti-bot walls will break a demo. SerpAPI's Google Shopping results provide the same product signal (titles, prices, reviews) without brittle scraping. 
 ---
 
 ## Technical design
@@ -90,7 +89,7 @@ public/
 
 **What I tested:**
 
-- Ran the Earthy Utility Co-ords trend (full live API run) — result is cached in `public/sample-output.json`
+- Ran the Kaftan Co-ords trend (full live API run) — result is cached in `public/sample-output.json`
 - Verified that the Disagreement View renders even when 4/5 signals agree (the remaining tension is always surfaced)
 - Confirmed `confidence: "Insufficient Data"` path works correctly when SerpAPI returns no results
 - Verified TypeScript compiles clean (`npx tsc --noEmit`)
@@ -99,7 +98,6 @@ public/
 **Known failure modes:**
 
 - Google Trends full interest-over-time curve is blocked server-side without a browser session — search interest signal returns directional data (related queries) but not the time-series chart
-- YouTube API quota is 10,000 units/day — each analysis uses ~3 units; not a concern for demo but worth noting for production
 - SerpAPI free tier: 100 searches/month. Run the cached sample if budget is limited.
 
 ---
