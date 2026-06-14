@@ -2,8 +2,6 @@
 
 A decision tool for value-fashion category buyers to evaluate whether a Women's Co-ord Set trend deserves inventory commitment — before demand is visible in sales reports.
 
-Built for Fourier FDE Assessment · Problem 01 · Trend Buying.
-
 ---
 
 ## Run it
@@ -25,7 +23,6 @@ npm run dev
 | `SERPAPI_KEY` | Marketplace + competitor + creator signals | serpapi.com |
 | `YOUTUBE_API_KEY` | YouTube Data API v3 for creator signal (optional) | console.cloud.google.com |
 
-**No keys?** Load the cached demo at `http://localhost:3000/report/sample-earthy-utility-2026` — it reads from `public/sample-output.json` and requires no API calls.
 
 ---
 
