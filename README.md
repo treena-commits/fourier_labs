@@ -55,7 +55,7 @@ Not "Is this trend interesting?"
 
 - Google Trends (India-specific, 12-month window)
 - Public fashion blogs / style guides
-- Visual platforms (Pinterest boards, Instagram hashtags like #CoOrdSets2026)
+- Visual platforms (Instagram hashtags like #CoOrdSets2026)
 
 ### Response Format
 
@@ -101,7 +101,6 @@ npm run dev
 | `GROQ_API_KEY` | LLM synthesis layer (llama-3.3-70b-versatile) |
 | `SERPAPI_KEY` | All five signals — marketplace, creator, competitor, search trends |
 
-**No keys?** Go to `http://localhost:3000/report/sample-earthy-utility-2026` — loads `public/sample-output.json` with no API calls.
 
 
 ---
