@@ -19,7 +19,6 @@ interface Analog {
 
 function scoreSimilarity(input: TrendInput, analog: Analog): number {
   let score = 0
-  const desc = input.description.toLowerCase()
   const fabricQuery = input.fabric.toLowerCase()
 
   // Fabric match
@@ -27,21 +26,18 @@ function scoreSimilarity(input: TrendInput, analog: Analog): number {
     score += 3
   }
 
-  // Season match
-  if (analog.season.toLowerCase().includes(input.season.toLowerCase().split('/')[0].toLowerCase())) {
-    score += 2
-  }
-
   // Price band overlap
   const [inputLow, inputHigh] = input.priceBand.split('-').map(Number)
   const [analogLow, analogHigh] = analog.price_band.split('-').map(Number)
   if (inputLow <= analogHigh && inputHigh >= analogLow) score += 2
 
-  // Keyword overlap in trend name and description
-  const descWords = desc.split(/\s+/).filter(w => w.length > 4)
-  for (const word of descWords) {
-    if (analog.trend.toLowerCase().includes(word)) score += 1
-    if (analog.print.toLowerCase().includes(word)) score += 1
+  // Keyword overlap using full keywords text (recommendation layer — untruncated)
+  if (input.keywords?.trim()) {
+    const kwWords = input.keywords.toLowerCase().split(/\s+/).filter(w => w.length > 4)
+    for (const word of kwWords) {
+      if (analog.trend.toLowerCase().includes(word)) score += 1
+      if (analog.print.toLowerCase().includes(word)) score += 1
+    }
   }
 
   return score

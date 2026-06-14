@@ -49,15 +49,13 @@ const PRICE_BANDS: { value: TrendInput['priceBand']; label: string }[] = [
   { value: '1000-1499', label: '₹1,000–1,499' },
 ]
 
-const SEASONS = ['Spring/Summer', 'Festive', 'Winter', 'All-Season']
-
 const FABRICS = ['Cotton / Cotton-linen', 'Linen', 'Rayon / Viscose', 'Georgette / Crepe', 'Polyester Knit', 'Other']
 
 const PIPELINE_STEPS = [
-  { id: 'creator', label: 'Creator Signal', desc: 'YouTube & Instagram mentions' },
-  { id: 'marketplace', label: 'Marketplace Demand', desc: 'Myntra & Amazon.in' },
+  { id: 'creator', label: 'Creator Signal', desc: 'Instagram mentions' },
+  { id: 'marketplace', label: 'Marketplace Demand', desc: 'Myntra, Amazon.in, Nykaa etc.' },
   { id: 'search', label: 'Search Interest', desc: 'Google Trends India' },
-  { id: 'competitor', label: 'Competitor Buy Map', desc: 'Max Fashion + Ajio' },
+  { id: 'competitor', label: 'Competitor Buy Map', desc: 'Max Fashion, Ajio etc.' },
   { id: 'historical', label: 'Historical Analog', desc: 'Past co-ord trend outcomes' },
   { id: 'analysis', label: 'Buyer Recommendation', desc: 'AI reasoning layer' },
 ]
@@ -67,10 +65,9 @@ export default function IntakePage() {
   const [form, setForm] = useState<TrendInput>({
     category: "Women's Apparel",
     subCategory: 'Co-ord Sets',
-    description: '',
+    keywords: '',
     buyingHorizon: 'next-cycle',
     priceBand: '600-999',
-    season: 'Spring/Summer',
     fabric: 'Cotton / Cotton-linen',
   })
   const [loading, setLoading] = useState(false)
@@ -79,7 +76,6 @@ export default function IntakePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.description.trim()) return
     setLoading(true)
     setError('')
 
@@ -179,22 +175,21 @@ export default function IntakePage() {
               </div>
             </div>
 
-            {/* Trend Description */}
+            {/* Trend Keywords */}
             <div>
               <label className="block text-sm font-semibold mb-1">
-                Trend Description <span className="text-red-400">*</span>
+                Trend Keywords <span className="text-xs font-normal" style={{ color: 'var(--muted)' }}>(optional)</span>
               </label>
               <p className="text-xs mb-2" style={{ color: 'var(--muted)' }}>
-                What is the core visual anchor? Silhouette, print story, vibe — be specific.
+                Add adjectives or modifiers to refine the search — e.g. vibe, print, silhouette detail. Sub-category is always the base.
               </p>
               <textarea
-                rows={4}
+                rows={3}
                 className="w-full rounded-lg border px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-400"
                 style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
-                placeholder='e.g. "Earthy-toned utility co-ord sets in breathable cotton-linen with cargo pocket details, targeting casual-occasion summer buyers at value price points"'
-                value={form.description}
-                onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                required
+                placeholder='e.g. "earthy utility cargo" or "floral print summer casual"'
+                value={form.keywords ?? ''}
+                onChange={e => setForm(f => ({ ...f, keywords: e.target.value }))}
               />
             </div>
 
@@ -253,28 +248,6 @@ export default function IntakePage() {
                 </div>
               </div>
 
-              {/* Season */}
-              <div>
-                <div className="text-xs font-medium mb-2">Season</div>
-                <div className="flex flex-wrap gap-2">
-                  {SEASONS.map(s => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => setForm(f => ({ ...f, season: s }))}
-                      className={cn(
-                        'px-3 py-1.5 rounded-full border text-xs font-medium transition-all',
-                        form.season === s
-                          ? 'border-amber-500 bg-amber-50 text-amber-800 ring-1 ring-amber-400'
-                          : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
-                      )}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {/* Fabric */}
               <div>
                 <div className="text-xs font-medium mb-2">Fabric</div>
@@ -306,7 +279,7 @@ export default function IntakePage() {
 
             <button
               type="submit"
-              disabled={loading || !form.description.trim()}
+              disabled={loading}
               className="w-full rounded-lg py-3.5 px-6 font-semibold text-white text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: 'var(--accent)' }}
             >

@@ -92,27 +92,30 @@ function MarketplaceSources({ data }: { data: ShoppingResult[] }) {
   if (!data || data.length === 0) return <p className="text-xs text-gray-400">No listing data available.</p>
   return (
     <div className="space-y-2">
-      {data.map((item, i) => (
-        <a
-          key={i}
-          href={item.link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-start justify-between gap-2 rounded border p-2 hover:bg-gray-50 transition-colors group"
-          style={{ borderColor: 'var(--border)' }}
-        >
-          <div className="min-w-0">
-            <div className="text-xs font-medium truncate group-hover:underline">{item.title}</div>
-            <div className="text-xs mt-0.5 flex gap-2" style={{ color: 'var(--muted)' }}>
-              <span>{item.source}</span>
-              {item.price && <><span>·</span><span className="font-medium">{item.price}</span></>}
-              {item.reviews != null && item.reviews > 0 && <><span>·</span><span>{item.reviews.toLocaleString()} reviews</span></>}
-              {item.rating != null && item.rating > 0 && <><span>·</span><span>★ {item.rating.toFixed(1)}</span></>}
+      {data.map((item, i) => {
+        const href = item.link || `https://www.google.com/search?q=${encodeURIComponent(item.title + ' ' + item.source)}&tbm=shop`
+        return (
+          <a
+            key={i}
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-start justify-between gap-2 rounded border p-2 hover:bg-gray-50 transition-colors group cursor-pointer"
+            style={{ borderColor: 'var(--border)' }}
+          >
+            <div className="min-w-0">
+              <div className="text-xs font-medium truncate group-hover:underline">{item.title}</div>
+              <div className="text-xs mt-0.5 flex gap-2" style={{ color: 'var(--muted)' }}>
+                <span>{item.source}</span>
+                {item.price && <><span>·</span><span className="font-medium">{item.price}</span></>}
+                {item.reviews != null && item.reviews > 0 && <><span>·</span><span>{item.reviews.toLocaleString()} reviews</span></>}
+                {item.rating != null && item.rating > 0 && <><span>·</span><span>★ {item.rating.toFixed(1)}</span></>}
+              </div>
             </div>
-          </div>
-          <span className="text-xs flex-shrink-0 mt-0.5" style={{ color: 'var(--muted)' }}>↗</span>
-        </a>
-      ))}
+            <span className="text-xs flex-shrink-0 mt-0.5" style={{ color: 'var(--muted)' }}>↗</span>
+          </a>
+        )
+      })}
     </div>
   )
 }
@@ -120,39 +123,10 @@ function MarketplaceSources({ data }: { data: ShoppingResult[] }) {
 function CreatorSources({ data }: { data: { youtube: YouTubeVideo[]; instagram: InstagramMention[] } }) {
   if (!data) return <p className="text-xs text-gray-400">No creator data available.</p>
   const { youtube, instagram } = data
-  if (youtube.length === 0 && instagram.length === 0) return <p className="text-xs text-gray-400">No creator data found. Add YOUTUBE_API_KEY to enable.</p>
+  if (instagram.length === 0) return <p className="text-xs text-gray-400">No Instagram mentions found.</p>
 
   return (
     <div className="space-y-3">
-      {youtube.length > 0 && (
-        <div>
-          <div className="text-xs font-semibold mb-1.5" style={{ color: 'var(--muted)' }}>YouTube</div>
-          <div className="space-y-1.5">
-            {youtube.map((v, i) => (
-              <a
-                key={i}
-                href={`https://youtube.com/watch?v=${v.videoId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-start justify-between gap-2 rounded border p-2 hover:bg-gray-50 transition-colors group"
-                style={{ borderColor: 'var(--border)' }}
-              >
-                <div className="min-w-0">
-                  <div className="text-xs font-medium truncate group-hover:underline">{v.title}</div>
-                  <div className="text-xs mt-0.5 flex gap-2" style={{ color: 'var(--muted)' }}>
-                    <span>{v.channelTitle}</span>
-                    <span>·</span>
-                    <span>{v.viewCount.toLocaleString()} views</span>
-                    <span>·</span>
-                    <span>{new Date(v.publishedAt).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}</span>
-                  </div>
-                </div>
-                <span className="text-xs flex-shrink-0 mt-0.5" style={{ color: 'var(--muted)' }}>↗</span>
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
       {instagram.length > 0 && (
         <div>
           <div className="text-xs font-semibold mb-1.5" style={{ color: 'var(--muted)' }}>Instagram mentions (via Google)</div>
@@ -253,13 +227,15 @@ function CompetitorSources({ data }: { data: CompetitorListing[] }) {
         <div key={retailer}>
           <div className="text-xs font-semibold mb-1.5" style={{ color: 'var(--muted)' }}>{retailer}</div>
           <div className="space-y-1.5">
-            {items.map((item, i) => (
+            {items.map((item, i) => {
+              const href = item.url || `https://www.google.com/search?q=${encodeURIComponent(item.retailer + ' ' + item.title)}&tbm=shop`
+              return (
               <a
                 key={i}
-                href={item.url}
+                href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-start justify-between gap-2 rounded border p-2 hover:bg-gray-50 transition-colors group"
+                className="flex items-start justify-between gap-2 rounded border p-2 hover:bg-gray-50 transition-colors group cursor-pointer"
                 style={{ borderColor: 'var(--border)' }}
               >
                 <div className="min-w-0">
@@ -272,7 +248,8 @@ function CompetitorSources({ data }: { data: CompetitorListing[] }) {
                 </div>
                 <span className="text-xs flex-shrink-0 mt-0.5" style={{ color: 'var(--muted)' }}>↗</span>
               </a>
-            ))}
+              )
+            })}
           </div>
         </div>
       ))}
@@ -412,15 +389,13 @@ export default function ReportPage() {
               Trend Decision Report · {report.input.category} / {report.input.subCategory}
             </div>
             <div className="flex items-start justify-between gap-4">
-              <h1 className="text-2xl font-bold leading-tight">{report.input.description.slice(0, 80)}{report.input.description.length > 80 ? '…' : ''}</h1>
+              <h1 className="text-2xl font-bold leading-tight">{(report.input.keywords ?? report.input.subCategory).slice(0, 80)}{(report.input.keywords ?? '').length > 80 ? '…' : ''}</h1>
               <span className={cn('px-4 py-1.5 rounded-full text-sm font-bold whitespace-nowrap flex-shrink-0', rec.bg, rec.text)}>
                 {rec.label}
               </span>
             </div>
             <div className="flex gap-3 mt-2 text-xs" style={{ color: 'var(--muted)' }}>
               <span>₹{report.input.priceBand}</span>
-              <span>·</span>
-              <span>{report.input.season}</span>
               <span>·</span>
               <span>{report.input.fabric}</span>
               {report.input.buyingHorizon && (

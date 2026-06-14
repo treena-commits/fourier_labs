@@ -1,4 +1,5 @@
 import { TrendInput, SignalResult } from '@/lib/types'
+import { extractSearchTokens } from '@/lib/utils'
 
 interface CompetitorListing {
   retailer: string
@@ -36,12 +37,16 @@ async function fetchRetailer(retailerName: string, retailerQuery: string, source
 
 function buildCompetitorKeyword(input: TrendInput): string {
   const fabric = input.fabric.toLowerCase()
-  if (fabric.includes('linen')) return 'linen co-ord set'
-  if (fabric.includes('cotton')) return 'cotton co-ord set'
-  if (fabric.includes('rayon') || fabric.includes('viscose')) return 'rayon co-ord set'
-  if (fabric.includes('georgette') || fabric.includes('crepe')) return 'georgette co-ord set'
-  if (fabric.includes('denim')) return 'denim co-ord set'
-  return 'co-ord set women'
+  let base = 'co-ord set women'
+  if (fabric.includes('linen')) base = 'linen co-ord set'
+  else if (fabric.includes('cotton')) base = 'cotton co-ord set'
+  else if (fabric.includes('rayon') || fabric.includes('viscose')) base = 'rayon co-ord set'
+  else if (fabric.includes('georgette') || fabric.includes('crepe')) base = 'georgette co-ord set'
+  else if (fabric.includes('denim')) base = 'denim co-ord set'
+
+  if (!input.keywords?.trim()) return base
+  const tokens = extractSearchTokens(input.keywords)
+  return tokens ? `${tokens} ${base}` : base
 }
 
 export async function fetchCompetitorSignal(input: TrendInput): Promise<SignalResult & { raw_data: CompetitorListing[] }> {

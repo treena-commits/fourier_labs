@@ -1,10 +1,9 @@
 export interface TrendInput {
   category: string
   subCategory: string
-  description: string
+  keywords?: string
   buyingHorizon: 'immediate' | 'next-cycle' | 'future-bet'
   priceBand: '299-599' | '600-999' | '1000-1499'
-  season: string
   fabric: string
 }
 

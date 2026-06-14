@@ -15,10 +15,9 @@ export async function analyzeWithClaude(input: TrendInput, signals: AllSignals):
   const prompt = `You are TrendBet, a decision copilot for value-fashion category buyers in India.
 
 A buyer is evaluating this trend for ${input.category} — ${input.subCategory}:
-- Description: ${input.description}
+- Trend Keywords: ${input.keywords?.trim() || 'Not specified'}
 - Buying Horizon: ${input.buyingHorizon === 'immediate' ? 'Immediate (0–30 days) — trend must already be established; no time to wait for more signal' : input.buyingHorizon === 'next-cycle' ? 'Next Buying Cycle (31–90 days) — rising trends are viable; factor in lead time' : 'Future Bet (90+ days) — early-signal stage; emerging trends worth tracking are acceptable'}
 - Target Price Band: ₹${input.priceBand}
-- Season: ${input.season}
 - Fabric: ${input.fabric}
 
 Here are the 5 signal results collected from real sources:
@@ -28,6 +27,7 @@ Confidence: ${signals.creator.confidence}
 Evidence: ${signals.creator.evidence_summary}
 What it proves: ${signals.creator.what_it_proves}
 What could mislead: ${signals.creator.what_could_mislead}
+Data limitation: Instagram mentions are collected via generic Google Search only — no follower count, creator niche, engagement rate, or audience demographics are available. Any surfaced creator could be aspirational/premium with an audience that does not buy at ₹${input.priceBand}. If creator signal materially influences your recommendation, flag this in evidence_gaps.
 
 ## Marketplace Demand Shift (Myntra + Amazon.in via Google Shopping)
 Confidence: ${signals.marketplace.confidence}

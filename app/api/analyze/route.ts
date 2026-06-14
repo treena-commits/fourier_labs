@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   try {
     const input: TrendInput = await req.json()
 
-    if (!input.description || !input.priceBand || !input.season || !input.fabric) {
+    if (!input.priceBand || !input.fabric) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 

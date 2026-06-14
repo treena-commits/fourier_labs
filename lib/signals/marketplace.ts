@@ -1,4 +1,5 @@
 import { TrendInput, SignalResult } from '@/lib/types'
+import { extractSearchTokens } from '@/lib/utils'
 
 interface ShoppingResult {
   title: string
@@ -9,14 +10,38 @@ interface ShoppingResult {
   link: string
 }
 
+const SOURCE_MAP: Record<string, string> = {
+  'myntra': 'Myntra',
+  'amazon.in': 'Amazon.in',
+  'amazon': 'Amazon.in',
+  'nykaa fashion': 'Nykaa Fashion',
+  'nykaa': 'Nykaa Fashion',
+  'ajio': 'Ajio',
+  'flipkart': 'Flipkart',
+  'meesho': 'Meesho',
+  'snapdeal': 'Snapdeal',
+}
+
+function normalizeSource(raw: string): string {
+  const key = raw.toLowerCase().trim()
+  for (const [pattern, label] of Object.entries(SOURCE_MAP)) {
+    if (key.includes(pattern)) return label
+  }
+  return 'Other marketplace'
+}
+
 function buildMarketplaceKeyword(input: TrendInput): string {
   const fabric = input.fabric.toLowerCase()
-  if (fabric.includes('linen')) return 'linen co-ord set women'
-  if (fabric.includes('cotton')) return 'cotton co-ord set women'
-  if (fabric.includes('rayon') || fabric.includes('viscose')) return 'rayon co-ord set women'
-  if (fabric.includes('georgette') || fabric.includes('crepe')) return 'georgette co-ord set women'
-  if (fabric.includes('denim')) return 'denim co-ord set women'
-  return 'co-ord set women'
+  let base = 'co-ord set women'
+  if (fabric.includes('linen')) base = 'linen co-ord set women'
+  else if (fabric.includes('cotton')) base = 'cotton co-ord set women'
+  else if (fabric.includes('rayon') || fabric.includes('viscose')) base = 'rayon co-ord set women'
+  else if (fabric.includes('georgette') || fabric.includes('crepe')) base = 'georgette co-ord set women'
+  else if (fabric.includes('denim')) base = 'denim co-ord set women'
+
+  if (!input.keywords?.trim()) return base
+  const tokens = extractSearchTokens(input.keywords)
+  return tokens ? `${tokens} ${base}` : base
 }
 
 export async function fetchMarketplaceSignal(input: TrendInput): Promise<SignalResult & { raw_data: ShoppingResult[] }> {
@@ -34,32 +59,27 @@ export async function fetchMarketplaceSignal(input: TrendInput): Promise<SignalR
     }
   }
 
-  // Query both Myntra and Amazon.in via Google Shopping
-  const queries = [
-    `${keyword} site:myntra.com`,
-    `${keyword} site:amazon.in`,
-  ]
-
-  for (const q of queries) {
-    try {
-      const url = `https://serpapi.com/search.json?engine=google_shopping&q=${encodeURIComponent(q)}&gl=in&hl=en&api_key=${apiKey}`
-      const res = await fetch(url, { next: { revalidate: 3600 } })
-      if (!res.ok) continue
+  // Google Shopping does not support site: filters — query broadly and capture all sources
+  // (Myntra, Amazon.in, Nykaa, etc. appear naturally in IN-locale results)
+  try {
+    const url = `https://serpapi.com/search.json?engine=google_shopping&q=${encodeURIComponent(keyword)}&gl=in&hl=en&api_key=${apiKey}`
+    const res = await fetch(url, { next: { revalidate: 3600 } })
+    if (res.ok) {
       const data = await res.json()
-      const items = (data.shopping_results || []).slice(0, 5)
+      const items = (data.shopping_results || []).slice(0, 10)
       for (const item of items) {
         results.push({
           title: item.title,
           price: item.price,
-          source: item.source,
+          source: normalizeSource(item.source || ''),
           rating: item.rating,
           reviews: item.reviews,
           link: item.link,
         })
       }
-    } catch {
-      // continue with partial results
     }
+  } catch {
+    // continue with empty results
   }
 
   if (results.length === 0) {

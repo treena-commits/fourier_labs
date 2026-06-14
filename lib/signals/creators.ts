@@ -1,4 +1,5 @@
 import { TrendInput, SignalResult } from '@/lib/types'
+import { extractSearchTokens } from '@/lib/utils'
 
 interface YouTubeVideo {
   title: string
@@ -18,10 +19,14 @@ interface InstagramMention {
 
 function buildCreatorKeyword(input: TrendInput): string {
   const fabric = input.fabric.toLowerCase()
-  if (fabric.includes('linen')) return 'linen co-ord set'
-  if (fabric.includes('cotton')) return 'cotton co-ord set'
-  if (fabric.includes('rayon') || fabric.includes('viscose')) return 'rayon co-ord set'
-  return 'co-ord set women'
+  let base = 'co-ord set women'
+  if (fabric.includes('linen')) base = 'linen co-ord set'
+  else if (fabric.includes('cotton')) base = 'cotton co-ord set'
+  else if (fabric.includes('rayon') || fabric.includes('viscose')) base = 'rayon co-ord set'
+
+  if (!input.keywords?.trim()) return base
+  const tokens = extractSearchTokens(input.keywords)
+  return tokens ? `${tokens} ${base}` : base
 }
 
 export async function fetchCreatorSignal(input: TrendInput): Promise<SignalResult & { raw_data: { youtube: YouTubeVideo[], instagram: InstagramMention[] } }> {
@@ -87,7 +92,7 @@ export async function fetchCreatorSignal(input: TrendInput): Promise<SignalResul
   if (youtubeVideos.length === 0 && instagramMentions.length === 0) {
     return {
       confidence: 'Insufficient Data',
-      evidence_summary: 'No creator content found. Configure YOUTUBE_API_KEY and SERPAPI_KEY.',
+      evidence_summary: 'No Instagram mentions found. Weak signal — recommend monitoring.',
       what_it_proves: 'Creator awareness and early adoption signal.',
       what_could_mislead: 'Views do not equal purchases; social buzz may not convert to value-fashion demand.',
       raw_data: { youtube: [], instagram: [] },
@@ -110,7 +115,7 @@ export async function fetchCreatorSignal(input: TrendInput): Promise<SignalResul
   const topVideo = youtubeVideos[0]
   const summary = [
     youtubeVideos.length > 0 ? `${youtubeVideos.length} YouTube videos found (${recentVideos.length} in last 6 months). Top: "${topVideo?.title}" — ${topVideo?.viewCount?.toLocaleString()} views.` : '',
-    instagramMentions.length > 0 ? `${instagramMentions.length} Instagram mentions via Google Search.` : '',
+    instagramMentions.length > 0 ? `${instagramMentions.length} Instagram mentions found.` : '',
   ].filter(Boolean).join(' ')
 
   return {

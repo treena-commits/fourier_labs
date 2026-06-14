@@ -1,4 +1,5 @@
 import { TrendInput, SignalResult } from '@/lib/types'
+import { extractSearchTokens } from '@/lib/utils'
 
 interface TrendDataPoint {
   date: string
@@ -14,10 +15,16 @@ interface GoogleTrendsResult {
   topRegions: string[]
 }
 
-// Extract short, Google-Trends-friendly keywords from the raw trend input.
-// The full description string is too specific and returns no results.
+// Narrow keyword-layered candidate tried first; fabric-based candidates are fallbacks.
+// Fetcher tries candidates in order and stops at the first with meaningful data (peak > 10).
 function buildKeywordCandidates(input: TrendInput): string[] {
   const candidates: string[] = []
+
+  // Keyword layer: narrow candidate tried first when buyer specified keywords
+  if (input.keywords?.trim()) {
+    const tokens = extractSearchTokens(input.keywords)
+    if (tokens) candidates.push(`${tokens} co-ord set`)
+  }
 
   // Fabric-specific keyword (e.g. "linen coord set", "cotton coord set")
   const fabric = input.fabric.toLowerCase()
@@ -28,11 +35,6 @@ function buildKeywordCandidates(input: TrendInput): string[] {
   if (fabric.includes('silk')) candidates.push('silk coord set')
   if (fabric.includes('denim')) candidates.push('denim coord set')
 
-  // Season keyword
-  const season = input.season.toLowerCase()
-  if (season.includes('summer') || season.includes('spring')) candidates.push('summer coord set women')
-  if (season.includes('winter')) candidates.push('winter coord set women')
-
   // Broad reliable fallbacks
   candidates.push('co-ord set women')
   candidates.push('coord set')
@@ -40,17 +42,21 @@ function buildKeywordCandidates(input: TrendInput): string[] {
   return candidates
 }
 
-async function fetchTrendsForKeyword(keyword: string, apiKey: string): Promise<{
+interface FetchedTrendsData {
   timeline: TrendDataPoint[]
-  relatedQueries: string[]
+  risingQueries: string[]
+  topQueries: string[]
   topRegions: string[]
-} | null> {
+}
+
+async function fetchTrendsForKeyword(keyword: string, apiKey: string): Promise<FetchedTrendsData | null> {
   try {
     const base = `https://serpapi.com/search.json?engine=google_trends&q=${encodeURIComponent(keyword)}&geo=IN&date=today+12-m&api_key=${apiKey}`
 
-    const [timeRes, relatedRes] = await Promise.all([
+    const [timeRes, relatedRes, geoRes] = await Promise.all([
       fetch(`${base}&data_type=TIMESERIES`, { next: { revalidate: 3600 } }),
       fetch(`${base}&data_type=RELATED_QUERIES`, { next: { revalidate: 3600 } }),
+      fetch(`${base}&data_type=GEO_MAP`, { next: { revalidate: 3600 } }),
     ])
 
     if (!timeRes.ok) return null
@@ -67,19 +73,38 @@ async function fetchTrendsForKeyword(keyword: string, apiKey: string): Promise<{
       value: t.values?.[0]?.extracted_value ?? 0,
     }))
 
-    let relatedQueries: string[] = []
+    // Skip this candidate if data is too sparse (peak < 10 means practically no signal)
+    const peakCheck = Math.max(...timeline.map(t => t.value))
+    if (peakCheck < 10) return null
+
+    let risingQueries: string[] = []
+    let topQueries: string[] = []
     if (relatedRes.ok) {
       const relatedData = await relatedRes.json()
       if (!relatedData.error) {
-        const rising = relatedData?.related_queries?.rising || []
-        const top = relatedData?.related_queries?.top || []
-        relatedQueries = [...rising, ...top]
-          .slice(0, 6)
+        risingQueries = (relatedData?.related_queries?.rising || [])
+          .slice(0, 5)
+          .map((r: { query: string; value?: string }) =>
+            r.value === 'Breakout' ? `${r.query} ↑↑` : r.query
+          )
+        topQueries = (relatedData?.related_queries?.top || [])
+          .slice(0, 4)
           .map((r: { query: string }) => r.query)
       }
     }
 
-    return { timeline, relatedQueries, topRegions: [] }
+    let topRegions: string[] = []
+    if (geoRes.ok) {
+      const geoData = await geoRes.json()
+      if (!geoData.error) {
+        topRegions = (geoData?.interest_by_region || [])
+          .sort((a: { value: number[] }, b: { value: number[] }) => (b.value?.[0] ?? 0) - (a.value?.[0] ?? 0))
+          .slice(0, 4)
+          .map((r: { location: string }) => r.location)
+      }
+    }
+
+    return { timeline, risingQueries, topQueries, topRegions }
   } catch {
     return null
   }
@@ -95,28 +120,36 @@ export async function fetchSearchTrendsSignal(input: TrendInput): Promise<Signal
       const result = await fetchTrendsForKeyword(keyword, apiKey)
       if (!result) continue
 
-      const { timeline, relatedQueries, topRegions } = result
+      const { timeline, risingQueries, topQueries, topRegions } = result
       const values = timeline.map((t) => t.value)
       const peakValue = Math.max(...values)
       const currentValue = values[values.length - 1] ?? 0
 
-      const recentAvg = values.slice(-4).reduce((a, b) => a + b, 0) / 4
-      const earlierAvg = values.slice(0, 4).reduce((a, b) => a + b, 0) / 4
-      const trend = recentAvg > earlierAvg + 5 ? 'rising' : recentAvg < earlierAvg - 5 ? 'declining' : 'stable'
+      // Use last 8 weeks vs first 8 weeks for a more stable trend direction
+      const windowSize = Math.min(8, Math.floor(values.length / 3))
+      const recentAvg = values.slice(-windowSize).reduce((a, b) => a + b, 0) / windowSize
+      const earlierAvg = values.slice(0, windowSize).reduce((a, b) => a + b, 0) / windowSize
+      const trendDirection =
+        recentAvg > earlierAvg * 1.2 ? 'rising'
+        : recentAvg < earlierAvg * 0.8 ? 'declining'
+        : 'stable'
 
       const confidence: SignalResult['confidence'] =
-        peakValue >= 50 && currentValue >= 30 ? 'High'
-        : peakValue >= 20 || relatedQueries.length >= 3 ? 'Medium'
+        peakValue >= 50 && currentValue >= 25 ? 'High'
+        : peakValue >= 20 && values.filter(v => v > 5).length >= values.length * 0.6 ? 'Medium'
         : 'Low'
 
-      const regionStr = topRegions.length ? ` Top regions: ${topRegions.slice(0, 3).join(', ')}.` : ''
-      const relatedStr = relatedQueries.length ? ` Related: ${relatedQueries.slice(0, 4).join(', ')}.` : ''
+      const regionStr = topRegions.length ? ` Top states: ${topRegions.join(', ')}.` : ''
+      const risingStr = risingQueries.length ? ` Rising searches: ${risingQueries.slice(0, 3).join(', ')}.` : ''
+      const topStr = topQueries.length ? ` Top searches: ${topQueries.slice(0, 3).join(', ')}.` : ''
+
+      const relatedQueries = [...risingQueries, ...topQueries]
 
       return {
         confidence,
-        evidence_summary: `Google Trends India — "${keyword}" (last 12 months): peak interest ${peakValue}/100, current ${currentValue}/100, trend is ${trend}.${regionStr}${relatedStr}`,
-        what_it_proves: 'Consumer search momentum for this trend category in India, with regional and temporal breakdown.',
-        what_could_mislead: 'Search interest is a lagging indicator — by the time searches peak, the optimal buying window may have passed. Regional spikes may not reflect your store base.',
+        evidence_summary: `Google Trends India — "${keyword}" (last 12 months): peak ${peakValue}/100, current ${currentValue}/100, momentum is ${trendDirection}.${regionStr}${risingStr}${topStr}`,
+        what_it_proves: 'Consumer search momentum for this trend category in India — direction (rising/stable/declining) is more meaningful than absolute value.',
+        what_could_mislead: 'Search interest is a lagging indicator — peaks often follow the optimal buying window. Regional spikes may not reflect your specific store catchment.',
         raw_data: { keyword, timeline, peakValue, currentValue, relatedQueries, topRegions },
       }
     }
@@ -124,7 +157,7 @@ export async function fetchSearchTrendsSignal(input: TrendInput): Promise<Signal
 
   return {
     confidence: 'Insufficient Data',
-    evidence_summary: 'Could not retrieve Google Trends data. Configure SERPAPI_KEY to enable full trends signal.',
+    evidence_summary: 'Could not retrieve Google Trends data. Configure SERPAPI_KEY to enable this signal.',
     what_it_proves: 'Consumer search momentum for the trend in India.',
     what_could_mislead: 'Search interest is a lagging signal; peaks often follow the optimal buying window.',
     raw_data: null,
