@@ -53,10 +53,6 @@ function ShareIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fi
 function DlIcon()    { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> }
 function DotsIcon()  { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg> }
 function ArrowIcon() { return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeOpacity="0.6" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg> }
-function DashIcon()  { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> }
-function BetsIcon()  { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> }
-function HistNavIcon(){ return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> }
-function GearIcon()  { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg> }
 function BoxIcon()     { return <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="12" rx="2" stroke="#d1d5db" strokeWidth="1.5"/></svg> }
 function ChevDownIcon(){ return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg> }
 
@@ -612,42 +608,6 @@ function IndiaFitSection({ fit }: { fit: TrendReport['india_fit'] }) {
   )
 }
 
-// ─── Left sidebar ─────────────────────────────────────────────────────────────
-
-function LeftSidebar({ onNew }: { onNew: () => void }) {
-  const NAV = [
-    { label: 'Dashboard',   icon: <DashIcon />,    active: false },
-    { label: 'Active Bets', icon: <BetsIcon />,    active: true },
-    { label: 'History',     icon: <HistNavIcon />, active: false },
-    { label: 'Settings',    icon: <GearIcon />,    active: false },
-  ]
-  return (
-    <aside className="hidden lg:flex flex-col w-[212px] bg-white border-r border-slate-200 shrink-0 h-screen sticky top-0">
-      <div className="px-5 pt-5 pb-4 border-b border-slate-100">
-        <div className="text-xl font-bold text-blue-700 tracking-tight">TrendBet</div>
-        <div className="text-xs text-slate-400 mt-0.5">Fashion Buyer Copilot</div>
-      </div>
-      <nav className="flex-1 px-3 py-4 space-y-0.5">
-        {NAV.map(item => (
-          <div key={item.label} className={cn(
-            'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition-all duration-150 select-none',
-            item.active ? 'bg-blue-50 text-blue-700 nav-active' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 hover:translate-x-0.5'
-          )}>
-            <span className={item.active ? 'text-blue-600' : 'text-slate-400'}>{item.icon}</span>
-            {item.label}
-          </div>
-        ))}
-      </nav>
-      <div className="px-3 pb-5">
-        <button onClick={onNew}
-          className="w-full py-2.5 bg-blue-700 hover:bg-blue-600 active:bg-blue-800 text-white text-sm font-semibold rounded-xl transition-all duration-150 shadow-sm hover:shadow-md active:scale-[0.98]">
-          + New Trend Evaluation
-        </button>
-      </div>
-    </aside>
-  )
-}
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function extractUnits(text: string): { range: string } {
@@ -751,10 +711,8 @@ export default function ReportPage() {
   const dated = new Date(report.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
 
   return (
-    <div className="flex bg-slate-100 min-h-screen">
-      <LeftSidebar onNew={() => router.push('/')} />
-
-      <div className="flex-1 flex flex-col min-w-0">
+    <div className="bg-slate-100 min-h-screen">
+      <div className="flex flex-col">
 
         {/* ── Header ── */}
         <header className="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between sticky top-0 z-10 shrink-0">
