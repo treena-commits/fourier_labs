@@ -106,14 +106,7 @@ public/
 
 ---
 
-## Feedback loop
 
-After sell-through results come in (6–8 weeks post-buy), the buyer rates the recommendation: **accurate**, **overcalled**, or **undercalled**. That rating does two things:
-
-1. Updates the `outcome` field in `historical-analogs.json` for the actual trend — the analog dataset grows with real validated outcomes over time.
-2. Feeds a calibration check: if the system called **Deep Buy** five times in a price band and three were overcalled, the creator signal is consistently optimistic for that segment. The next analysis can weight it accordingly.
-
-No model retraining needed. The improvement is in the prompt context, not the weights.
 
 ---
 
