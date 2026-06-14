@@ -1,6 +1,6 @@
 # TrendBet — Fashion Buyer Decision Copilot
 
-A decision tool for value-fashion category buyers to evaluate whether a Women's Co-ord Set trend deserves inventory commitment — before demand is visible in sales reports.
+Category buyers commit inventory 6–8 weeks before demand shows up in sales reports. Get it wrong and you're marking down half the buy. Get too cautious and a competitor clears the shelf. TrendBet pulls five independent signals — creator buzz, marketplace supply, search momentum, competitor buys, and historical analog performance — and shows you where they agree, where they contradict, and what that means for your price band. The output is an inventory recommendation, not a confidence score.
 
 ---
 
@@ -15,41 +15,42 @@ npm run dev
 # open http://localhost:3000
 ```
 
-**Required API keys** (`.env.local`):
+**API keys** (`.env.local`):
 
-| Key | Purpose | Get it |
-|---|---|---|
-| `GROQ_API_KEY` | LLM reasoning layer (llama-3.3-70b-versatile) | console.groq.com |
-| `SERPAPI_KEY` | Marketplace + competitor + creator signals | serpapi.com |
-| `YOUTUBE_API_KEY` | YouTube Data API v3 for creator signal (optional) | console.cloud.google.com |
+| Key | Purpose |
+|---|---|
+| `GROQ_API_KEY` | LLM synthesis layer (llama-3.3-70b-versatile) |
+| `SERPAPI_KEY` | All five signals — marketplace, creator, competitor, search trends |
+
+**No keys?** Go to `http://localhost:3000/report/sample-earthy-utility-2026` — loads `public/sample-output.json` with no API calls.
 
 
 ---
 
-## What it does
+## The core design decision
 
-Two screens:
+TrendBet doesn't produce a score. Scores hide the tension between signals and give buyers false confidence. Instead, every signal card shows what the evidence proves *and* where it can mislead. When signals disagree — creator surge with thin marketplace supply, or competitor stock with declining search interest — TrendBet names the disagreement and identifies what would resolve it. That's the differentiating feature. The buyer still makes the call; TrendBet shows them what they're deciding through.
 
-1. **Intake Form** — buyer describes a trend (silhouette, price band, season, fabric) and submits
-2. **Trend Decision Report** — TrendBet returns a structured analysis across 5 signals with a final recommendation
+Confidence is verbal: **High**, **Medium**, **Low**, or **Insufficient Data**. Never a number. This is intentional — a number implies precision that the data doesn't support.
 
-The output is not a confidence score. It is an actionable inventory decision: **Monitor**, **Small Trial Buy**, **Deep Buy**, or **Avoid** — with explicit disagreements between signals surfaced so buyers can see where judgment is still required.
+Two screens: an intake form (trend description, price band, fabric, season) and a Trend Decision Report with 5 signal cards, a disagreement view, India-fit analysis, and a recommendation: **Monitor**, **Small Trial Buy**, **Deep Buy**, or **Avoid**.
 
 ---
 
 ## Source strategy
 
-| Signal | Source | What it proves | Where it misleads |
-|---|---|---|---|
-| Creator Pulse | YouTube Data API v3 + Google Search for Instagram mentions | Awareness, early adoption, creator amplification | Views ≠ purchases. Aspirational creators may not map to value-fashion buyers. |
-| Marketplace Demand | SerpAPI Google Shopping (`site:myntra.com`, `site:amazon.in`) | Real purchase activity: review counts, price range, new arrival velocity | Sponsored placement inflates rank. Stockouts look like demand. Discounting signals oversupply. |
-| Search Interest | Google Trends India (pytrends / suggest API) | Consumer search momentum in India | Lagging indicator — peak search often follows the optimal buying window. |
-| Competitor Buy Map | Google Search `site:Ajio.com + `site:maxfashion.in` via SerpAPI | Retailer conviction; is the market backing this? | Competitors may be copying each other. Different customer segments. Sale items signal possible overstock. |
-| Historical Analog | Curated dataset of 10 real India co-ord trends (`/data/historical-analogs.json`) | Commercial precedent by fabric, silhouette, price band | Small dataset, hand-curated (disclosed). Past outcomes don't guarantee future demand. |
+Each signal covers a different stage of the trend lifecycle. Creator mentions fire 3–6 months before peak demand — it's the earliest signal available without insider data. Search interest fires 1–3 months out — consumer intent, not just awareness. Marketplace listings and competitor buys are concurrent signals — they tell you what's already committed. Historical analogs are the only outcome-validated signal: what actually sold through in a similar configuration. Together they triangulate across early, mid, and current stages. A single-source or single-stage view is what causes the bad buys.
 
- **Global → India translation layer** — explicit prompt module that asks: does this trend fit Indian climate, modesty norms, and price band before passing to the recommendation layer
+Sources that were considered and excluded: direct scraping of Myntra/Amazon (anti-bot walls, too fragile for a reliable demo), Instagram's official Graph API (requires per-creator OAuth consent), proprietary retailer sell-through data (unavailable), and runway/fashion week trend reports (too aspirational, wrong price band for value fashion, wrong geography).
 
-**Why no direct scraping of Myntra/Amazon?** Anti-bot walls will break a demo. SerpAPI's Google Shopping results provide the same product signal (titles, prices, reviews) without brittle scraping. 
+| Signal | Source | Why this source | What it proves | Where it misleads |
+|---|---|---|---|---|
+| **Creator Pulse** | SerpAPI Google Search (`site:instagram.com`) | Instagram's official API requires per-creator OAuth. SerpAPI's Google index gives real public post mentions without that dependency. | Whether creators are actively amplifying this trend right now. | No follower count or audience data. A 500K travel creator and a 10K budget-fashion creator look identical. The signal can't distinguish aspirational buzz from value-fashion intent. |
+| **Marketplace Demand** | SerpAPI Google Shopping (`site:myntra.com`, `site:amazon.in`) | Direct scraping of Myntra and Amazon breaks on anti-bot walls. Google Shopping results carry the same signal — titles, prices, reviews, new arrival tags — with a 24–48 hour indexing lag. Acceptable tradeoff. | Real purchase activity: review velocity, price range vs. buyer's band, new arrival listings. | Sponsored placement inflates rank. Stockouts look like demand. Heavy discounting signals oversupply, not affordability. |
+| **Search Interest** | SerpAPI Google Trends engine, geo=IN, 12-month window | pytrends blocks server-side without a browser session. SerpAPI's Trends engine gives the same underlying data without that constraint. | Consumer search momentum in India — regional spikes, rising related queries. | Lagging indicator. Peak search typically follows the optimal buying window by 4–8 weeks. |
+| **Competitor Buy Map** | SerpAPI Google Shopping, filtered to `site:maxfashion.in` + `site:zudio.com` | Ajio and Reliance Trends have too-fragmented search index coverage for reliable signal. Max and Zudio are the clearest value-fashion comparables. | Whether the market has committed inventory to this trend — retailer conviction. | Competitors may be copying each other. Sale items signal possible overstock, not demand. |
+| **Historical Analog** | 10 curated co-ord trend outcomes in `/data/historical-analogs.json` | No proprietary sell-through database exists. The analog dataset is hand-curated from Myntra trend reports, Apparel Resources, and industry press — disclosed as such on every report. | Commercial precedent: what happened the last time a similar fabric/silhouette/price-band combination ran. | Small dataset. Past market conditions may not hold. Outcomes are directional, not verified sell-through rates. |
+
 ---
 
 ## Technical design
@@ -65,7 +66,7 @@ lib/
   utils.ts                  cn() utility
   signals/
     marketplace.ts          SerpAPI Google Shopping
-    creators.ts             YouTube API v3 + Google Search
+    creators.ts             SerpAPI Google Search (Instagram mentions)
     competitors.ts          SerpAPI site:zudio.com, site:maxfashion.in
     search_trends.ts        Google Trends suggest API
     historical.ts           Cosine-style scoring against analog dataset
@@ -87,39 +88,54 @@ public/
 
 ---
 
-## Evaluation approach
+## Evaluation
 
-**What I tested:**
+**Tested:**
+- Full live API run on "Kaftan Co-ord Set, ₹600–999, Cotton-linen" — result is in `public/sample-output.json`
+- Disagreement view renders even when 4 of 5 signals agree — the remaining tension is always named
+- `confidence: "Insufficient Data"` path confirmed when SerpAPI returns zero results
+- `npx tsc --noEmit` — clean
+- `npm run build` — passes
 
-- Ran the Kaftan Co-ords trend (full live API run) — result is cached in `public/sample-output.json`
-- Verified that the Disagreement View renders even when 4/5 signals agree (the remaining tension is always surfaced)
-- Confirmed `confidence: "Insufficient Data"` path works correctly when SerpAPI returns no results
-- Verified TypeScript compiles clean (`npx tsc --noEmit`)
-- Verified `npm run build` passes with no errors
+**Not tested:**
+- All five signals returning empty simultaneously — the fully data-starved fallback path
+- Two buyers running different trends at the same time — no request queue or retry backoff on concurrent SerpAPI calls
+- Whether the disagreement framing reads the same to a Tier-1 buyer vs. a Tier-3 buyer — the language isn't segment-aware yet
 
-**Known failure modes:**
+**Known constraint:** Google Trends full interest-over-time curve is blocked server-side without a browser session — the search interest signal returns related queries and regional data but not the time-series chart.
 
-- Google Trends full interest-over-time curve is blocked server-side without a browser session — search interest signal returns directional data (related queries) but not the time-series chart
-- SerpAPI free tier: 100 searches/month. Run the cached sample if budget is limited.
+---
+
+## Feedback loop
+
+After sell-through results come in (6–8 weeks post-buy), the buyer rates the recommendation: **accurate**, **overcalled**, or **undercalled**. That rating does two things:
+
+1. Updates the `outcome` field in `historical-analogs.json` for the actual trend — the analog dataset grows with real validated outcomes over time.
+2. Feeds a calibration check: if the system called **Deep Buy** five times in a price band and three were overcalled, the creator signal is consistently optimistic for that segment. The next analysis can weight it accordingly.
+
+No model retraining needed. The improvement is in the prompt context, not the weights.
 
 ---
 
 ## Business measurement
 
-A successful TrendBet adoption would be measured by:
+TrendBet produces two concrete outputs: a recommendation (`Monitor / Small Trial Buy / Deep Buy / Avoid`) and a unit range (e.g., 80–120 units). Those are the only things you can realistically measure against from day one.
 
-- **Sell-through rate improvement** — target: 5–10 percentage point increase in first-cycle sell-through vs. buyer's baseline
-- **Markdown reduction** — fewer end-of-season markdowns on trend buys that used TrendBet vs. intuition-only buys
-- **Stockout avoidance** — for "Deep Buy" recommendations, confirm restocking was available within lead time
-- **Decision speed** — time from trend identification to purchase order; target 30–50% reduction
-- **Buyer adoption** — subjective: do buyers trust the disagreement view, or override it? The feedback loop is where the product compounds.
+**Recommendation accuracy** — after sell-through results come in, did the call match the outcome? Log the recommendation, log the actual sell-through, and you have accuracy over time. No baseline or control group needed.
+
+**Unit range accuracy** — did the actual optimal quantity fall within the suggested range? Sold out in week 3 = undersized. 40 units left at markdown = oversized.
+
+**Override rate** — how often did buyers override the recommendation, and when they did, who was right? This is the leading indicator of whether buyers trust the disagreement view.
+
+Metrics like "5–10pp sell-through improvement vs. baseline" or "markdown reduction" are real outcomes if TrendBet works — but they require a control group that doesn't exist yet. Recommendation accuracy is what gets you there.
 
 ---
 
 ## What to build next
 
-1. **Google Trends time-series** — route through a Python sidecar (pytrends) to get the full 12-month interest curve and regional breakdown
-2. **Buyer feedback loop** — after sell-through, buyers rate the recommendation; feed back into historical analog dataset
-3. **Visual trend clustering** — group competitor product images by silhouette and color family using Claude's vision API
-4. **Active Bets tracker** — once the buyer places an order, track sell-through signals weekly against the original recommendation
-6. **Instagram creator quality enrichment** — the current creator signal collects Instagram mentions via a generic Google Search (`site:instagram.com OR site:reels`). It has no visibility into which creators are being surfaced: a 500K niche fashion creator and a 10M general lifestyle creator are treated identically. The fix requires either the Instagram Graph API (OAuth per-creator) or a third-party influencer platform (e.g. Phyllo, Modash) to enrich each mention with follower count, niche tags, engagement rate, and audience demographics. Until then, the signal cannot distinguish aspirational/premium creator buzz from creators whose audiences actually buy at ₹699–999 price points — a meaningful gap for value-fashion decisions.
+1. **Google Trends time-series** — Python sidecar (pytrends with browser session) to get the full 12-month weekly curve and regional breakdown
+2. **Buyer feedback loop** — sell-through rating UI that writes back into `historical-analogs.json`
+3. **Instagram creator enrichment** — current signal has no visibility into follower count or audience. Needs a third-party influencer API (Phyllo, Modash) to add niche tags, engagement rate, and value-fashion audience data
+4. **Visual trend clustering** — group competitor product images by silhouette and color family using Claude's vision API
+5. **Active Bets tracker** — once a buyer places an order, track sell-through signals weekly against the original TrendBet call
+6. **India-fit prompt module** — explicit pre-analysis step: does this trend fit Indian climate, modesty norms, and price band before it hits the recommendation layer
