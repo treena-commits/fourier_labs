@@ -57,7 +57,28 @@ function DashIcon()  { return <svg width="15" height="15" viewBox="0 0 24 24" fi
 function BetsIcon()  { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> }
 function HistNavIcon(){ return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> }
 function GearIcon()  { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg> }
-function BoxIcon()   { return <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="12" rx="2" stroke="#d1d5db" strokeWidth="1.5"/></svg> }
+function BoxIcon()     { return <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="12" rx="2" stroke="#d1d5db" strokeWidth="1.5"/></svg> }
+function ChevDownIcon(){ return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg> }
+
+// ─── Helpers (early — used by source components below) ───────────────────────
+
+function sanitizeLink(link: string, fallbackQuery: string): string {
+  if (!link || /_sample|sample\d|sample_\d/i.test(link)) {
+    return `https://www.google.com/search?q=${encodeURIComponent(fallbackQuery)}`
+  }
+  const ytMatch = link.match(/youtube\.com\/watch\?v=(.+)/)
+  if (ytMatch && !/^[A-Za-z0-9_-]{11}$/.test(ytMatch[1])) {
+    return `https://www.google.com/search?q=${encodeURIComponent(fallbackQuery)}`
+  }
+  return link
+}
+
+function buildDisplayTitle(keywords: string, subCategory: string): string {
+  const kl = keywords.toLowerCase()
+  const firstSubWord = subCategory.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g, '')
+  if (kl.includes(firstSubWord)) return keywords
+  return `${keywords} ${subCategory}`
+}
 
 // ─── Raw data types ───────────────────────────────────────────────────────────
 
@@ -236,7 +257,7 @@ function RadarChart({ signals }: { signals: TrendReport['signals'] }) {
   const polygon = sigPts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')
 
   return (
-    <svg viewBox="0 0 240 240" width="200" height="200" className="shrink-0">
+    <svg viewBox="0 0 240 240" width="200" height="200" className="shrink-0 anim-radarIn">
       {/* Grid rings */}
       {[0.25, 0.55, 0.9].map((lvl, i) => (
         <polygon key={i} points={ptsStr(lvl * maxR)} fill="none" stroke="#e2e8f0" strokeWidth="1" />
@@ -293,7 +314,7 @@ function MarketplaceSources({ data }: { data: ShoppingResult[] }) {
     <div className="space-y-1.5">
       {data.map((item, i) => (
         <SrcLink key={i}
-          href={item.link || `https://www.google.com/search?q=${encodeURIComponent(item.title + ' ' + item.source)}&tbm=shop`}
+          href={sanitizeLink(item.link, `${item.title} ${item.source} site:${item.source.toLowerCase().replace(/\s/g,'')}.com`)}
           label={item.title}
           sub={[item.source, item.price, item.reviews ? `${item.reviews.toLocaleString()} reviews` : '', item.rating ? `★ ${item.rating.toFixed(1)}` : ''].filter(Boolean).join(' · ')} />
       ))}
@@ -302,11 +323,32 @@ function MarketplaceSources({ data }: { data: ShoppingResult[] }) {
 }
 
 function CreatorSources({ data }: { data: { youtube: YouTubeVideo[]; instagram: InstagramMention[] } }) {
-  if (!data?.instagram?.length) return <p className="text-sm text-slate-400">No creator data.</p>
+  if (!data?.youtube?.length && !data?.instagram?.length) return <p className="text-sm text-slate-400">No creator data.</p>
   return (
-    <div className="space-y-1.5">
-      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2">Instagram mentions via Google</div>
-      {data.instagram.map((m, i) => <SrcLink key={i} href={m.link} label={m.title} sub={m.snippet} />)}
+    <div className="space-y-3">
+      {data?.youtube?.length > 0 && (
+        <div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-1.5">YouTube videos</div>
+          <div className="space-y-1.5">
+            {data.youtube.map((v, i) => (
+              <SrcLink key={i}
+                href={sanitizeLink(`https://www.youtube.com/watch?v=${v.videoId}`, `${v.title} ${v.channelTitle}`)}
+                label={v.title}
+                sub={[v.channelTitle, `${v.viewCount.toLocaleString()} views`, new Date(v.publishedAt).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })].filter(Boolean).join(' · ')} />
+            ))}
+          </div>
+        </div>
+      )}
+      {data?.instagram?.length > 0 && (
+        <div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-1.5">Instagram mentions via Google</div>
+          <div className="space-y-1.5">
+            {data.instagram.map((m, i) => (
+              <SrcLink key={i} href={sanitizeLink(m.link, m.title)} label={m.title} sub={m.snippet} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -321,11 +363,18 @@ function SearchTrendsSources({ data }: { data: GoogleTrendsResult | null }) {
         sub={`Peak ${data.peakValue}/100 · Now ${data.currentValue}/100 · Last 12 months`} />
       {data.relatedQueries.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
-          {data.relatedQueries.map((q, i) => (
-            <a key={i} href={`https://trends.google.com/trends/explore?q=${encodeURIComponent(q)}&geo=IN`}
-              target="_blank" rel="noopener noreferrer"
-              className="px-2.5 py-1 rounded-full border border-slate-200 text-xs text-slate-500 hover:bg-slate-50">{q} ↗</a>
-          ))}
+          {data.relatedQueries.map((q, i) => {
+            const isRising = /↑/.test(q)
+            const label = q.replace(/↑+/g, '').trim()
+            return (
+              <a key={i} href={`https://trends.google.com/trends/explore?q=${encodeURIComponent(label)}&geo=IN`}
+                target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-slate-200 text-xs text-slate-500 hover:bg-slate-50">
+                {isRising && <span className="text-emerald-500 font-bold">↑</span>}
+                {label} ↗
+              </a>
+            )
+          })}
         </div>
       )}
     </div>
@@ -343,7 +392,7 @@ function CompetitorSources({ data }: { data: CompetitorListing[] }) {
           <div className="space-y-1.5">
             {items.map((item, i) => (
               <SrcLink key={i}
-                href={item.url || `https://www.google.com/search?q=${encodeURIComponent(item.retailer + ' ' + item.title)}&tbm=shop`}
+                href={sanitizeLink(item.url, `${item.retailer} ${item.title}`)}
                 label={item.title}
                 sub={[item.price, item.isNewArrival ? 'New Arrival' : '', item.isOnSale ? 'On Sale' : ''].filter(Boolean).join(' · ')} />
             ))}
@@ -377,6 +426,45 @@ function HistoricalSources({ data }: { data: HistoricalAnalog[] }) {
   )
 }
 
+// ─── Collapsible section wrapper ──────────────────────────────────────────────
+
+function CollapseSection({
+  title, badge, icon, children, defaultOpen = false, accent, dark = false,
+}: {
+  title: string; badge?: React.ReactNode; icon?: React.ReactNode
+  children: React.ReactNode; defaultOpen?: boolean; accent?: string; dark?: boolean
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <div
+      className={cn('rounded-2xl border overflow-hidden', dark ? 'border-transparent' : 'bg-white border-slate-200')}
+      style={{ ...(dark ? { background: '#1e3a8a' } : {}), ...(accent ? { borderLeft: `4px solid ${accent}` } : {}) }}
+    >
+      <button
+        onClick={() => setOpen(v => !v)}
+        className={cn(
+          'w-full flex items-center justify-between px-5 py-3.5 text-left transition-colors',
+          dark ? 'hover:bg-white/10' : 'hover:bg-slate-50'
+        )}
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          {icon}
+          <span className={cn('text-sm font-bold', dark ? 'text-white' : 'text-slate-700')}>{title}</span>
+          {badge}
+        </div>
+        <span className={cn('shrink-0 ml-3 transition-transform duration-200', open && 'rotate-180', dark ? 'text-blue-300' : 'text-slate-400')}>
+          <ChevDownIcon />
+        </span>
+      </button>
+      <div className={cn('expand-grid', open && 'open')}>
+        <div>
+          <div className="px-5 pb-5">{children}</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function SignalSourceDrawer({ signalKey, rawData, defaultOpen = false }: { signalKey: string; rawData: unknown; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen)
   return (
@@ -399,22 +487,41 @@ function SignalSourceDrawer({ signalKey, rawData, defaultOpen = false }: { signa
   )
 }
 
+// ─── Animated confidence bar ──────────────────────────────────────────────────
+
+function AnimatedBar({ width, color, height = 'h-[3px]' }: { width: string; color: string; height?: string }) {
+  const [w, setW] = useState('0%')
+  useEffect(() => {
+    const t = requestAnimationFrame(() => setW(width))
+    return () => cancelAnimationFrame(t)
+  }, [width])
+  return (
+    <div className={cn(height, 'bg-slate-100 rounded-full overflow-hidden')}>
+      <div className={cn('h-full rounded-full transition-all duration-700 ease-out', color)} style={{ width: w }} />
+    </div>
+  )
+}
+
 // ─── Signal card ──────────────────────────────────────────────────────────────
 
-function SignalCard({ signalKey, sig, fullWidth, priceBand }: {
+function SignalCard({ signalKey, sig, fullWidth, priceBand, animDelay = 0 }: {
   signalKey: string
   sig: TrendReport['signals'][keyof TrendReport['signals']]
   fullWidth?: boolean
   priceBand: string
+  animDelay?: number
 }) {
   const [open, setOpen] = useState(false)
   const conf = CONF_CONFIG[sig.confidence]
   const meta = SIGNAL_META[signalKey] ?? { label: signalKey, icon: null, iconBg: 'bg-slate-50 text-slate-500' }
   return (
-    <div className={cn('bg-white rounded-2xl border border-slate-200 p-5 flex flex-col hover:shadow-md transition-shadow', fullWidth && 'sm:col-span-2')}>
+    <div
+      className={cn('bg-white rounded-2xl border border-slate-200 p-5 flex flex-col card-lift anim-fadeInUp', fullWidth && 'sm:col-span-2')}
+      style={{ animationDelay: `${animDelay}ms` }}
+    >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2.5">
-          <span className={cn('p-2 rounded-xl shrink-0', meta.iconBg)}>{meta.icon}</span>
+          <span className={cn('p-2 rounded-xl shrink-0 transition-transform duration-200 group-hover:scale-110', meta.iconBg)}>{meta.icon}</span>
           <span className="text-sm font-bold text-slate-700">{meta.label}</span>
         </div>
         <span className={cn('px-2.5 py-1 rounded-full text-xs font-bold tracking-wide', conf.badge)}>
@@ -424,11 +531,13 @@ function SignalCard({ signalKey, sig, fullWidth, priceBand }: {
       <p className={cn('text-sm text-slate-600 leading-relaxed flex-1', !open && 'line-clamp-3')}>
         {sig.evidence_summary}
       </p>
-      <div className="mt-3 h-[3px] bg-slate-100 rounded-full">
-        <div className={cn('h-full rounded-full', conf.bar)} style={{ width: conf.barWidth }} />
+      <div className="mt-3">
+        <AnimatedBar width={conf.barWidth} color={conf.bar} />
       </div>
-      {open && (
-        <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
+      {/* Smooth accordion */}
+      <div className={cn('expand-grid', open && 'open')}>
+        <div>
+          <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
           <InlineViz signalKey={signalKey} rawData={sig.raw_data} priceBand={priceBand} />
           <p className="text-sm leading-relaxed">
             <span className="font-semibold text-slate-800">Proves — </span>
@@ -440,10 +549,12 @@ function SignalCard({ signalKey, sig, fullWidth, priceBand }: {
           </p>
           <SignalSourceDrawer signalKey={signalKey} rawData={sig.raw_data} />
         </div>
-      )}
+        </div>
+      </div>
       <button onClick={() => setOpen(v => !v)}
-        className="mt-3 text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors self-start">
-        {open ? '▲ Collapse' : '▼ Chart · Proves · Watch · Sources'}
+        className="mt-3 text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors self-start flex items-center gap-1">
+        <span className={cn('transition-transform duration-200 inline-block', open && 'rotate-180')}>▼</span>
+        {open ? 'Collapse' : 'Detail'}
       </button>
     </div>
   )
@@ -455,7 +566,7 @@ function IndiaFitSection({ fit }: { fit: TrendReport['india_fit'] }) {
   const [open, setOpen] = useState(false)
   const cells: [string, string, string][] = [
     ['🌡️', 'Climate',    fit.climate],
-    ['🧕', 'Modesty',    fit.modesty_norms],
+    ['👗', 'Modesty',    fit.modesty_norms],
     ['₹',  'Price Band', fit.price_sensitivity],
     ['🎉', 'Occasion',   fit.occasion_relevance],
   ]
@@ -519,8 +630,8 @@ function LeftSidebar({ onNew }: { onNew: () => void }) {
       <nav className="flex-1 px-3 py-4 space-y-0.5">
         {NAV.map(item => (
           <div key={item.label} className={cn(
-            'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition-colors select-none',
-            item.active ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+            'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition-all duration-150 select-none',
+            item.active ? 'bg-blue-50 text-blue-700 nav-active' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 hover:translate-x-0.5'
           )}>
             <span className={item.active ? 'text-blue-600' : 'text-slate-400'}>{item.icon}</span>
             {item.label}
@@ -529,8 +640,8 @@ function LeftSidebar({ onNew }: { onNew: () => void }) {
       </nav>
       <div className="px-3 pb-5">
         <button onClick={onNew}
-          className="w-full py-2.5 bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold rounded-xl transition-colors">
-          New Trend Evaluation
+          className="w-full py-2.5 bg-blue-700 hover:bg-blue-600 active:bg-blue-800 text-white text-sm font-semibold rounded-xl transition-all duration-150 shadow-sm hover:shadow-md active:scale-[0.98]">
+          + New Trend Evaluation
         </button>
       </div>
     </aside>
@@ -564,14 +675,6 @@ function parseSellThroughTriggers(actions: string[]): SellThroughTriggers | null
   return { reorder: `≥${ro}%`, hold: `${md}–${ro}%`, markdown: `<${md}%`, markdownPrice: price, exit: `<${ex}%` }
 }
 
-function parseStoreCount(text: string): number | null {
-  const cities = ['Mumbai','Delhi','Bengaluru','Bangalore','Chennai','Kochi','Hyderabad','Pune','Kolkata','Ahmedabad']
-  const found = cities.filter(c => text.includes(c))
-  if (found.length >= 2) return found.length
-  const m = text.match(/(\d+)\s+stores?/i)
-  return m ? parseInt(m[1]) : null
-}
-
 function filterActions(actions: string[]): string[] {
   return actions.filter(a => {
     const l = a.toLowerCase()
@@ -588,15 +691,6 @@ function splitDisagreement(text: string): { consensus: string; counter: string }
   return { consensus: s.slice(0, h).join('. ') + '.', counter: s.slice(h).join('. ') }
 }
 
-function getTrendPalette(kw: string): [string, string, string] {
-  const k = kw.toLowerCase()
-  if (k.includes('earthy') || k.includes('utility')) return ['#6b7c5f', '#c4902a', '#8b7355']
-  if (k.includes('kaftan') || k.includes('resort'))  return ['#e8b4a0', '#7a9e9f', '#c4c08a']
-  if (k.includes('floral') || k.includes('print'))   return ['#e07a9a', '#f7c59f', '#87c2a5']
-  if (k.includes('ethnic') || k.includes('block'))   return ['#8b4513', '#d4a017', '#4a6741']
-  return ['#9b8ea8', '#c4a882', '#7a9e9f']
-}
-
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 const TABS = [
@@ -608,10 +702,13 @@ const TABS = [
 export default function ReportPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
-  const [report, setReport]       = useState<TrendReport | null>(null)
-  const [notFound, setNotFound]   = useState(false)
-  const [tab, setTab]             = useState('analysis')
-  const [skeptOpen, setSkeptOpen] = useState(false)
+  const [report, setReport]         = useState<TrendReport | null>(null)
+  const [notFound, setNotFound]     = useState(false)
+  const [tab, setTab]               = useState('analysis')
+  const [disAgreeOpen, setDisAgreeOpen]   = useState(false)
+  const [buyerNoteOpen, setBuyerNoteOpen] = useState(false)
+  const [guidanceOpen, setGuidanceOpen]   = useState(false)
+  const [triggersOpen, setTriggersOpen]   = useState(false)
 
   useEffect(() => {
     const stored = sessionStorage.getItem(`report-${id}`)
@@ -643,14 +740,13 @@ export default function ReportPage() {
   const rec = REC_CONFIG[report.recommendation]
   const isDemo = report.id.startsWith('demo-')
   const keywords = report.input.keywords ?? report.input.subCategory
+  const displayTitle = buildDisplayTitle(keywords, report.input.subCategory)
   const signalEntries = Object.entries(report.signals) as [string, TrendReport['signals'][keyof TrendReport['signals']]][]
   const { range: unitRange } = report.suggested_units ? extractUnits(report.suggested_units) : { range: '' }
   const unitNumbers  = unitRange ? parseUnitNumbers(unitRange) : null
-  const storeCount   = report.suggested_units ? parseStoreCount(report.suggested_units) : null
   const triggers     = parseSellThroughTriggers(report.recommended_actions)
   const filteredActions = filterActions(report.recommended_actions)
   const { consensus, counter } = splitDisagreement(report.disagreement_view)
-  const palette = getTrendPalette(keywords)
   const reportId = report.id.replace(/^demo-/, '').slice(0, 10).toUpperCase()
   const dated = new Date(report.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
 
@@ -663,7 +759,7 @@ export default function ReportPage() {
         {/* ── Header ── */}
         <header className="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between sticky top-0 z-10 shrink-0">
           <div className="flex items-center gap-1.5 text-sm">
-            <span className="text-slate-400 cursor-pointer hover:text-slate-600 transition-colors" onClick={() => router.push('/')}>Active Bets</span>
+            <span className="text-slate-400 cursor-pointer hover:text-slate-600 transition-colors" onClick={() => router.push('/')}>TrendBet</span>
             <span className="text-slate-300"><ChevR /></span>
             <span className="text-blue-700 font-semibold">Decision Report #{reportId}</span>
           </div>
@@ -691,27 +787,52 @@ export default function ReportPage() {
               <div className="space-y-4 min-w-0">
 
                 {/* Title */}
-                <div className="bg-white rounded-2xl border border-slate-200 p-5">
-                  <div className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-1.5">
+                {/* ── Dark gradient title header ── */}
+                <div
+                  className="rounded-2xl p-6 anim-fadeInUp"
+                  style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%)' }}
+                >
+                  <div className="text-xs font-semibold uppercase tracking-widest mb-1.5" style={{ color: 'rgba(148,163,184,0.8)' }}>
                     {report.input.category} / {report.input.subCategory}
                   </div>
-                  <h1 className="text-2xl font-bold text-slate-900 leading-tight tracking-tight">
-                    {keywords.slice(0, 72)}{keywords.length > 72 ? '…' : ''}
+                  <h1 className="text-2xl font-bold text-white leading-tight tracking-tight">
+                    {displayTitle.slice(0, 80)}{displayTitle.length > 80 ? '…' : ''}
                   </h1>
                   {report.india_fit.overall && (
-                    <p className="text-sm text-slate-500 mt-2 leading-relaxed max-w-lg line-clamp-2">
+                    <p className="text-sm mt-2 leading-relaxed max-w-lg line-clamp-2" style={{ color: 'rgba(203,213,225,0.85)' }}>
                       {report.india_fit.overall.split('.')[0] + '.'}
                     </p>
                   )}
-                  <div className="flex flex-wrap gap-2 mt-3">
+                  <div className="flex flex-wrap gap-2 mt-4">
                     {[`₹${report.input.priceBand}`, report.input.fabric,
                       report.input.buyingHorizon === 'immediate'   ? 'Immediate (0–30d)'
                       : report.input.buyingHorizon === 'next-cycle' ? 'Next Cycle (31–90d)'
                       : report.input.buyingHorizon === 'future-bet' ? 'Future Bet (90+d)' : ''
                     ].filter(Boolean).map(tag => (
-                      <span key={tag} className="text-xs text-slate-500 bg-slate-100 px-3 py-1 rounded-full font-medium">{tag}</span>
+                      <span key={tag} className="text-xs font-medium px-3 py-1 rounded-full"
+                        style={{ background: 'rgba(255,255,255,0.12)', color: 'rgba(226,232,240,0.9)' }}>
+                        {tag}
+                      </span>
                     ))}
                   </div>
+                  {report.input.buyerNote && (
+                    <div className="mt-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'rgba(148,163,184,0.7)' }}>Your Context</span>
+                        <button onClick={() => setBuyerNoteOpen(v => !v)}
+                          className="text-xs font-semibold transition-colors"
+                          style={{ color: 'rgba(147,197,253,0.9)' }}>
+                          {buyerNoteOpen ? '▲ Hide' : '▼ Show buyer note'}
+                        </button>
+                      </div>
+                      {buyerNoteOpen && (
+                        <p className="mt-2 text-sm leading-relaxed rounded-xl p-3 whitespace-pre-wrap"
+                          style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(203,213,225,0.85)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                          {report.input.buyerNote}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Tabs */}
@@ -729,12 +850,11 @@ export default function ReportPage() {
 
                 {/* ── Tab: Analysis ── */}
                 {tab === 'analysis' && (
-                  <div className="space-y-4">
+                  <div className="space-y-4 anim-fadeIn">
                     {/* Radar + signal legend */}
-                    <div className="bg-white rounded-2xl border border-slate-200 p-5">
-                      <div className="text-sm font-bold text-slate-700 mb-1">Signal Confidence Overview</div>
-                      <div className="text-xs text-slate-400 mb-4">Full pentagon = all signals agree. Lopsided = disagreement — detail below.</div>
-                      <div className="flex items-center gap-6">
+                    <CollapseSection title="Signal Overview" defaultOpen={false}
+                      badge={<span className="text-xs text-slate-400 ml-1">· confidence by signal</span>}>
+                      <div className="flex items-center gap-6 pt-1">
                         <RadarChart signals={report.signals} />
                         <div className="flex-1 space-y-3">
                           {signalEntries.map(([key, sig]) => {
@@ -748,124 +868,98 @@ export default function ReportPage() {
                                     <span className="text-xs font-semibold text-slate-600 truncate">{meta?.label}</span>
                                     <span className={cn('text-xs font-bold px-2 py-0.5 rounded-full ml-2 shrink-0', conf.badge)}>{conf.label}</span>
                                   </div>
-                                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                    <div className={cn('h-full rounded-full', conf.bar)} style={{ width: conf.barWidth }} />
-                                  </div>
+                                  <AnimatedBar width={conf.barWidth} color={conf.bar} height="h-1.5" />
                                 </div>
                               </div>
                             )
                           })}
                         </div>
                       </div>
-                    </div>
+                    </CollapseSection>
 
-                    {/* Disagreement — shown before signal cards so buyer sees the tension first */}
-                    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden" style={{ borderLeft: '4px solid #f97316' }}>
-                      <div className="p-5">
-                        <div className="flex items-center gap-2 mb-4">
-                          <AlertIcon />
-                          <span className="text-sm font-bold text-orange-600">Signal Disagreement</span>
-                          <span className="text-xs text-slate-400 hidden sm:block">— Where to probe further</span>
+                    {/* Disagreement */}
+                    <CollapseSection
+                      title="Signal Disagreement"
+                      defaultOpen={true}
+                      accent="#f97316"
+                      icon={<AlertIcon />}
+                      badge={<span className="text-xs text-slate-400 ml-1 hidden sm:inline">· where to probe further</span>}
+                    >
+                      <div className="grid grid-cols-2 gap-5 pt-1">
+                        <div>
+                          <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">The Consensus</div>
+                          <p className={cn('text-sm text-slate-600 leading-relaxed', !disAgreeOpen && 'line-clamp-3')}>{consensus}</p>
                         </div>
-                        <div className="grid grid-cols-2 gap-5">
-                          <div>
-                            <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">The Consensus</div>
-                            <p className="text-sm text-slate-600 leading-relaxed line-clamp-4">{consensus}</p>
-                          </div>
-                          <div>
-                            <div className="text-xs font-bold uppercase tracking-widest text-orange-500 mb-2">The Counter-Signal</div>
-                            <p className="text-sm text-slate-600 leading-relaxed line-clamp-4">{counter}</p>
-                          </div>
+                        <div>
+                          <div className="text-xs font-bold uppercase tracking-widest text-orange-500 mb-2">The Counter-Signal</div>
+                          <p className={cn('text-sm text-slate-600 leading-relaxed', !disAgreeOpen && 'line-clamp-3')}>{counter}</p>
                         </div>
                       </div>
-                    </div>
+                      {!disAgreeOpen && (
+                        <button onClick={() => setDisAgreeOpen(true)}
+                          className="mt-3 text-xs text-slate-400 hover:text-blue-600 transition-colors">
+                          Read full analysis including unresolved questions →
+                        </button>
+                      )}
+                    </CollapseSection>
 
                     {/* Signal cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {signalEntries.map(([key, sig], idx) => (
                         <SignalCard key={key} signalKey={key} sig={sig} priceBand={report.input.priceBand}
+                          animDelay={idx * 60}
                           fullWidth={signalEntries.length % 2 !== 0 && idx === signalEntries.length - 1} />
                       ))}
                     </div>
+
+                    {/* Skepticism Points */}
+                    {report.caveats.length > 0 && (
+                      <CollapseSection
+                        title="Skepticism Points"
+                        defaultOpen={false}
+                        badge={<span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold">{report.caveats.length}</span>}
+                      >
+                        <ul className="space-y-3 pt-1">
+                          {report.caveats.map((c, i) => (
+                            <li key={i} className="flex gap-3 text-sm">
+                              <span className="shrink-0 mt-2 w-1.5 h-1.5 rounded-full bg-amber-400" />
+                              <span className="text-slate-500 leading-relaxed">{c}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </CollapseSection>
+                    )}
                   </div>
                 )}
 
                 {/* ── Tab: India Fit ── */}
                 {tab === 'india' && (
-                  <div className="space-y-4">
+                  <div className="space-y-4 anim-fadeIn">
                     <IndiaFitSection fit={report.india_fit} />
-
-                    {/* Trend Architecture */}
-                    <div className="bg-white rounded-2xl border border-slate-200 p-5">
-                      <div className="text-sm font-bold text-slate-700 mb-1">Trend Architecture</div>
-                      <p className="text-xs text-slate-400 mb-4">Illustrative colour direction — not product photography</p>
-                      <div className="flex gap-3">
-                        <div className="flex-1 rounded-xl h-28 flex flex-col justify-end overflow-hidden"
-                          style={{ background: `linear-gradient(135deg, ${palette[0]}dd, ${palette[1]}88)` }}>
-                          <div className="px-3 py-2 bg-gradient-to-t from-black/30 to-transparent">
-                            <div className="text-white text-xs font-semibold">Silhouette direction</div>
-                          </div>
-                        </div>
-                        <div className="flex-1 rounded-xl h-28 flex flex-col justify-end overflow-hidden"
-                          style={{ background: `linear-gradient(135deg, ${palette[2]}dd, ${palette[0]}88)` }}>
-                          <div className="px-3 py-2 bg-gradient-to-t from-black/30 to-transparent">
-                            <div className="text-white text-xs font-semibold">Fabric & texture</div>
-                          </div>
-                        </div>
-                        <div className="w-32 rounded-xl h-28 border border-slate-100 bg-slate-50 p-4 flex flex-col justify-between">
-                          <div>
-                            <div className="text-xs font-bold text-slate-600 mb-3">Core Palette</div>
-                            <div className="flex gap-2">
-                              {palette.map((c, i) => (
-                                <div key={i} className="w-7 h-7 rounded-full ring-1 ring-slate-200 shadow-sm" style={{ background: c }} />
-                              ))}
-                            </div>
-                          </div>
-                          <div className="text-xs text-slate-400">Illustrative</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Skepticism */}
-                    {report.caveats.length > 0 && (
-                      <div className="bg-white rounded-2xl border border-slate-200 p-5">
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="text-sm font-bold text-slate-700">Skepticism Points</span>
-                          {report.caveats.length > 2 && (
-                            <button onClick={() => setSkeptOpen(v => !v)}
-                              className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors">
-                              {skeptOpen ? '▲ Fewer' : `▼ +${report.caveats.length - 2} more`}
-                            </button>
-                          )}
-                        </div>
-                        <ul className="space-y-3">
-                          {(skeptOpen ? report.caveats : report.caveats.slice(0, 2)).map((c, i) => (
-                            <li key={i} className="flex gap-3 text-sm">
-                              <span className="shrink-0 mt-2 w-1.5 h-1.5 rounded-full bg-slate-300" />
-                              <span className="text-slate-500 leading-relaxed">{c}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
                   </div>
                 )}
 
                 {/* ── Tab: Sources ── */}
                 {tab === 'sources' && (
-                  <div className="space-y-3">
+                  <div className="space-y-3 anim-fadeIn">
+                    {isDemo && (
+                      <div className="px-4 py-3 rounded-xl bg-yellow-50 border border-yellow-200 text-xs text-yellow-800">
+                        <strong>Cached demo run · {dated}.</strong> Social and marketplace links are illustrative — clicking ↗ redirects to a live Google search for that item so you can verify in real time.
+                      </div>
+                    )}
                     {signalEntries.map(([key, sig]) => {
                       const meta = SIGNAL_META[key]
                       const conf = CONF_CONFIG[sig.confidence]
                       return (
-                        <div key={key} className="bg-white rounded-2xl border border-slate-200 p-5">
-                          <div className="flex items-center gap-2.5 mb-4">
-                            <span className={cn('p-2 rounded-xl', meta?.iconBg)}>{meta?.icon}</span>
-                            <span className="text-sm font-bold text-slate-700">{meta?.label}</span>
-                            <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-bold ml-auto', conf.badge)}>{conf.label}</span>
-                          </div>
+                        <CollapseSection
+                          key={key}
+                          title={meta?.label ?? key}
+                          defaultOpen={false}
+                          icon={<span className={cn('p-1.5 rounded-lg shrink-0', meta?.iconBg)}>{meta?.icon}</span>}
+                          badge={<span className={cn('ml-auto mr-2 px-2 py-0.5 rounded-full text-xs font-bold', conf.badge)}>{conf.label}</span>}
+                        >
                           <SignalSourceDrawer signalKey={key} rawData={sig.raw_data} defaultOpen />
-                        </div>
+                        </CollapseSection>
                       )
                     })}
                   </div>
@@ -877,49 +971,74 @@ export default function ReportPage() {
                 <div className="sticky top-[57px] space-y-4">
 
                   {/* Bet Sizing — decision cockpit */}
-                  <div className="bg-white rounded-2xl border border-slate-200 p-5">
-                    <button className={cn(
-                      'w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold shadow-sm mb-5 transition-all',
-                      rec.bg, rec.text
+                  <div className="bg-white rounded-2xl border border-slate-200 p-5 anim-fadeInUp" style={{ animationDelay: '80ms' }}>
+                    <div className={cn(
+                      'w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold shadow-sm mb-5',
+                      rec.bg, rec.text,
+                      report.recommendation === 'Deep Buy' && 'anim-glowGreen',
+                      report.recommendation === 'Small Trial Buy' && 'anim-glowAmber',
                     )}>
                       {rec.icon}{rec.label}
-                    </button>
+                    </div>
 
                     {unitRange && (
                       <>
-                        <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Suggested Bet Size</div>
-                        <div className="flex items-end gap-2 mb-1">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <div className="text-xs font-bold uppercase tracking-widest text-slate-400">Starting Depth</div>
+                          <span className="text-xs text-slate-400 italic">AI-estimated · not data-derived</span>
+                        </div>
+                        <div className="flex items-end gap-2 mb-3">
                           <span className={cn('text-3xl font-bold leading-none tracking-tight', rec.unitColor)}>
                             {unitNumbers ? `${unitNumbers.min}–${unitNumbers.max}` : unitRange}
                           </span>
                           <span className="text-sm text-slate-400 pb-0.5">units / store</span>
                         </div>
-                        {storeCount && unitNumbers && (
-                          <p className="text-xs text-slate-400 mb-1">
-                            × {storeCount} stores →{' '}
-                            <span className="font-semibold text-slate-700">
-                              ~{unitNumbers.min * storeCount}–{unitNumbers.max * storeCount} units total
-                            </span>
-                          </p>
-                        )}
+                        {report.suggested_units && (() => {
+                          const afterFirst = report.suggested_units.indexOf('.')
+                          const guidance = afterFirst > -1 ? report.suggested_units.slice(afterFirst + 1).trim() : ''
+                          return guidance ? (
+                            <>
+                              <button onClick={() => setGuidanceOpen(v => !v)}
+                                className="flex items-center gap-1 text-xs text-slate-400 hover:text-blue-600 transition-colors mt-1">
+                                <span className={cn('transition-transform duration-200', guidanceOpen && 'rotate-180')}><ChevDownIcon /></span>
+                                Buying guidance
+                              </button>
+                              <div className={cn('expand-grid', guidanceOpen && 'open')}>
+                                <div>
+                                  <p className="text-xs text-slate-500 leading-relaxed bg-slate-50 rounded-xl p-3 border border-slate-100 mt-2">
+                                    {guidance}
+                                  </p>
+                                </div>
+                              </div>
+                            </>
+                          ) : null
+                        })()}
                       </>
                     )}
 
                     {triggers && (
-                      <div className="mt-4 pt-4 border-t border-slate-100">
-                        <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2.5">Week-4 Sell-Through Triggers</div>
-                        <div className="space-y-1.5">
-                          {([
-                            { range: triggers.reorder, label: 'Reorder',                      color: 'bg-emerald-50 border-emerald-200 text-emerald-700' },
-                            { range: triggers.hold,    label: 'Hold — monitor',               color: 'bg-amber-50 border-amber-200 text-amber-700' },
-                            { range: triggers.markdown,label: `Markdown ${triggers.markdownPrice}`, color: 'bg-orange-50 border-orange-200 text-orange-700' },
-                            { range: triggers.exit,    label: 'Exit — clear stock',            color: 'bg-red-50 border-red-200 text-red-700' },
-                          ] as { range: string; label: string; color: string }[]).map(({ range, label, color }) => (
-                            <div key={range} className={cn('flex items-center justify-between px-3 py-2 rounded-xl border text-xs font-semibold', color)}>
-                              <span>{range}</span>
-                              <span className="font-medium">{label}</span>
+                      <div className="mt-3 pt-3 border-t border-slate-100">
+                        <button onClick={() => setTriggersOpen(v => !v)}
+                          className="w-full flex items-center justify-between text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">
+                          Week-4 Triggers
+                          <span className={cn('transition-transform duration-200', triggersOpen && 'rotate-180')}><ChevDownIcon /></span>
+                        </button>
+                        <div className={cn('expand-grid', triggersOpen && 'open')}>
+                          <div>
+                            <div className="space-y-1.5 mt-3">
+                              {([
+                                { range: triggers.reorder,  label: 'Reorder',            color: 'bg-emerald-50 border-emerald-200 text-emerald-700' },
+                                { range: triggers.hold,     label: 'Hold — monitor',      color: 'bg-amber-50 border-amber-200 text-amber-700' },
+                                { range: triggers.markdown, label: `Markdown ${triggers.markdownPrice}`, color: 'bg-orange-50 border-orange-200 text-orange-700' },
+                              ] as { range: string; label: string; color: string }[]).map(({ range, label, color }) => (
+                                <div key={range} className={cn('flex items-center justify-between px-3 py-2 rounded-xl border text-xs font-semibold', color)}>
+                                  <span>{range}</span>
+                                  <span className="font-medium">{label}</span>
+                                </div>
+                              ))}
+                              <p className="text-xs text-slate-400 px-1">Exit &amp; clear if sell-through stays {triggers.exit} after markdown</p>
                             </div>
-                          ))}
+                          </div>
                         </div>
                       </div>
                     )}
@@ -927,35 +1046,47 @@ export default function ReportPage() {
 
                   {/* Evidence Gaps */}
                   {report.evidence_gaps.length > 0 && (
-                    <div className="bg-white rounded-2xl border border-slate-200 p-4">
-                      <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Validate Before Committing</div>
-                      <ul className="space-y-2">
-                        {report.evidence_gaps.slice(0, 3).map((gap, i) => {
-                          const title = gap.indexOf(' — ') > -1 ? gap.slice(0, gap.indexOf(' — ')) : gap
+                    <CollapseSection
+                      title="Validate Before Committing"
+                      defaultOpen={false}
+                      badge={<span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 font-bold">{report.evidence_gaps.length}</span>}
+                    >
+                      <ul className="space-y-2 pt-1">
+                        {report.evidence_gaps.map((gap, i) => {
+                          const sep = gap.indexOf(' — ')
+                          const title = sep > -1 ? gap.slice(0, sep) : gap
+                          const detail = sep > -1 ? gap.slice(sep + 3) : null
                           return (
-                            <li key={i} className="flex gap-2.5 items-center">
-                              <span className="shrink-0"><BoxIcon /></span>
-                              <span className="text-sm text-slate-700 leading-snug">{title}</span>
+                            <li key={i} className="flex gap-2.5 items-start">
+                              <span className="shrink-0 mt-0.5"><BoxIcon /></span>
+                              <div>
+                                <span className="text-sm text-slate-700 leading-snug">{title}</span>
+                                {detail && <p className="text-xs text-slate-400 mt-0.5 leading-snug">{detail}</p>}
+                              </div>
                             </li>
                           )
                         })}
                       </ul>
-                    </div>
+                    </CollapseSection>
                   )}
 
                   {/* Recommended Actions */}
                   {filteredActions.length > 0 && (
-                    <div className="rounded-2xl p-4" style={{ background: '#1e3a8a' }}>
-                      <div className="text-xs font-bold uppercase tracking-widest text-blue-300 mb-3">Next Actions</div>
-                      <ul className="space-y-1.5">
-                        {filteredActions.slice(0, 3).map((action, i) => (
+                    <CollapseSection
+                      title="Next Actions"
+                      defaultOpen={false}
+                      dark
+                      badge={<span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-white/20 text-blue-200 font-bold">{filteredActions.length}</span>}
+                    >
+                      <ul className="space-y-1.5 pt-1">
+                        {filteredActions.map((action, i) => (
                           <li key={i} className="flex items-start gap-2 px-3 py-2.5 bg-white/10 rounded-xl">
                             <span className="text-blue-300 font-bold text-xs shrink-0 mt-0.5">{i + 1}.</span>
                             <span className="text-xs text-white leading-relaxed">{action}</span>
                           </li>
                         ))}
                       </ul>
-                    </div>
+                    </CollapseSection>
                   )}
 
                   {/* Export */}
