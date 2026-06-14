@@ -82,11 +82,26 @@ export default function IntakePage() {
     setLoading(true)
     setError('')
 
+    // Track completion of animation and API independently.
+    // Navigation fires only when BOTH are done, so demo mode always
+    // plays the full pipeline animation before the report appears.
+    let pendingReport: ReturnType<typeof JSON.parse> | null = null
+    let animationDone = false
+
+    function finish(report: ReturnType<typeof JSON.parse>) {
+      sessionStorage.setItem(`report-${report.id}`, JSON.stringify(report))
+      router.push(`/report/${report.id}`)
+    }
+
     let step = 0
     const interval = setInterval(() => {
       setCurrentStep(step)
       step++
-      if (step >= PIPELINE_STEPS.length) clearInterval(interval)
+      if (step >= PIPELINE_STEPS.length) {
+        clearInterval(interval)
+        animationDone = true
+        if (pendingReport) finish(pendingReport)
+      }
     }, 1800)
 
     try {
@@ -95,8 +110,6 @@ export default function IntakePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       })
-      clearInterval(interval)
-      setCurrentStep(PIPELINE_STEPS.length - 1)
 
       if (!res.ok) {
         const err = await res.json()
@@ -104,8 +117,11 @@ export default function IntakePage() {
       }
 
       const report = await res.json()
-      sessionStorage.setItem(`report-${report.id}`, JSON.stringify(report))
-      router.push(`/report/${report.id}`)
+      if (animationDone) {
+        finish(report)
+      } else {
+        pendingReport = report
+      }
     } catch (err) {
       clearInterval(interval)
       setLoading(false)
