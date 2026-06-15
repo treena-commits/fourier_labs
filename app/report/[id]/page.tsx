@@ -436,27 +436,45 @@ function CollapseSection({
       className={cn('rounded-2xl border overflow-hidden', dark ? 'border-transparent' : 'bg-white border-slate-200')}
       style={{ ...(dark ? { background: '#1e3a8a' } : {}), ...(accent ? { borderLeft: `4px solid ${accent}` } : {}) }}
     >
+      {/* Header — label only, not a toggle */}
+      <div className="flex items-center gap-2 px-5 py-3.5 min-w-0">
+        {icon}
+        <span className={cn('text-sm font-bold', dark ? 'text-white' : 'text-slate-700')}>{title}</span>
+        {badge}
+      </div>
+
+      {/* Content with soft fade-preview */}
+      <div className="relative px-5">
+        <div
+          className="overflow-hidden transition-[max-height] duration-500 ease-in-out"
+          style={{ maxHeight: open ? '2000px' : '148px' }}
+        >
+          <div className={open ? 'pb-4' : ''}>{children}</div>
+        </div>
+        {!open && (
+          <div
+            className="absolute bottom-0 left-0 right-0 h-14 pointer-events-none"
+            style={{
+              background: dark
+                ? 'linear-gradient(to top, #1e3a8a, transparent)'
+                : 'linear-gradient(to top, white, transparent)',
+            }}
+          />
+        )}
+      </div>
+
+      {/* View more / Show less */}
       <button
         onClick={() => setOpen(v => !v)}
         className={cn(
-          'w-full flex items-center justify-between px-5 py-3.5 text-left transition-colors',
-          dark ? 'hover:bg-white/10' : 'hover:bg-slate-50'
+          'w-full px-5 py-2.5 text-xs font-semibold text-left flex items-center gap-1 transition-colors border-t',
+          dark
+            ? 'text-blue-300 hover:text-white border-white/10'
+            : 'text-blue-500 hover:text-blue-700 border-slate-100'
         )}
       >
-        <div className="flex items-center gap-2 min-w-0">
-          {icon}
-          <span className={cn('text-sm font-bold', dark ? 'text-white' : 'text-slate-700')}>{title}</span>
-          {badge}
-        </div>
-        <span className={cn('shrink-0 ml-3 transition-transform duration-200', open && 'rotate-180', dark ? 'text-blue-300' : 'text-slate-400')}>
-          <ChevDownIcon />
-        </span>
+        {open ? '↑ Show less' : 'View more →'}
       </button>
-      <div className={cn('expand-grid', open && 'open')}>
-        <div>
-          <div className="px-5 pb-5">{children}</div>
-        </div>
-      </div>
     </div>
   )
 }
@@ -507,7 +525,7 @@ function SignalCard({ signalKey, sig, fullWidth, priceBand, animDelay = 0 }: {
   priceBand: string
   animDelay?: number
 }) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(true)
   const conf = CONF_CONFIG[sig.confidence]
   const meta = SIGNAL_META[signalKey] ?? { label: signalKey, icon: null, iconBg: 'bg-slate-50 text-slate-500' }
   return (
@@ -810,7 +828,7 @@ export default function ReportPage() {
                 {tab === 'analysis' && (
                   <div className="space-y-4 anim-fadeIn">
                     {/* Radar + signal legend */}
-                    <CollapseSection title="Signal Overview" defaultOpen={false}
+                    <CollapseSection title="Signal Overview" defaultOpen={true}
                       badge={<span className="text-xs text-slate-400 ml-1">· confidence by signal</span>}>
                       <div className="flex items-center gap-6 pt-1">
                         <RadarChart signals={report.signals} />
@@ -1032,7 +1050,7 @@ export default function ReportPage() {
                   {filteredActions.length > 0 && (
                     <CollapseSection
                       title="Next Actions"
-                      defaultOpen={false}
+                      defaultOpen={true}
                       dark
                       badge={<span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-white/20 text-blue-200 font-bold">{filteredActions.length}</span>}
                     >
