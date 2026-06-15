@@ -686,7 +686,7 @@ export default function ReportPage() {
   const [disAgreeOpen, setDisAgreeOpen]   = useState(false)
   const [buyerNoteOpen, setBuyerNoteOpen] = useState(false)
   const [guidanceOpen, setGuidanceOpen]   = useState(false)
-  const [triggersOpen, setTriggersOpen]   = useState(false)
+  const [triggersOpen, setTriggersOpen]   = useState(true)
 
   useEffect(() => {
     const stored = sessionStorage.getItem(`report-${id}`)
@@ -793,20 +793,22 @@ export default function ReportPage() {
                   </div>
                   {report.input.buyerNote && (
                     <div className="mt-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'rgba(148,163,184,0.7)' }}>Your Context</span>
-                        <button onClick={() => setBuyerNoteOpen(v => !v)}
-                          className="text-xs font-semibold transition-colors"
-                          style={{ color: 'rgba(147,197,253,0.9)' }}>
-                          {buyerNoteOpen ? '▲ Hide' : '▼ Show buyer note'}
-                        </button>
-                      </div>
-                      {buyerNoteOpen && (
-                        <p className="mt-2 text-sm leading-relaxed rounded-xl p-3 whitespace-pre-wrap"
+                      <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'rgba(148,163,184,0.7)' }}>Your Context</span>
+                      <div className="relative mt-2">
+                        <p className={cn('text-sm leading-relaxed rounded-xl p-3 whitespace-pre-wrap', !buyerNoteOpen && 'line-clamp-3')}
                           style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(203,213,225,0.85)', border: '1px solid rgba(255,255,255,0.1)' }}>
                           {report.input.buyerNote}
                         </p>
-                      )}
+                        {!buyerNoteOpen && (
+                          <div className="absolute bottom-0 left-0 right-0 h-8 rounded-b-xl pointer-events-none"
+                            style={{ background: 'linear-gradient(to top, rgba(30,58,138,0.85), transparent)' }} />
+                        )}
+                      </div>
+                      <button onClick={() => setBuyerNoteOpen(v => !v)}
+                        className="mt-1.5 text-xs font-semibold transition-colors"
+                        style={{ color: 'rgba(147,197,253,0.9)' }}>
+                        {buyerNoteOpen ? '↑ Show less' : 'View more →'}
+                      </button>
                     </div>
                   )}
                 </div>
